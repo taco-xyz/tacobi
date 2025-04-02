@@ -40,22 +40,39 @@ type TacoBIContextType<S extends Schema> = {
   ) => Promise<Dataset<D["dataset_schema"]>>;
 };
 
-export const createTacoBIContext = <S extends Schema>() =>
+const createTacoBIContext = <S extends Schema>() =>
   createContext<TacoBIContextType<S>>({
     getDataset: async () => {
       throw new Error("getDataset not implemented");
     },
   });
 
+export const createTacoBI = <S extends Schema>(schema: S) => {
+  const context = createTacoBIContext<S>();
+
+  const useTacoBI = () => {
+    return useContext(context);
+  };
+
+  return {
+    state: {
+      context,
+      schema,
+    },
+    useTacoBI,
+  };
+};
+
 const TacoBIProvider = <S extends Schema>({
   children,
-  schema,
-  context,
+  state,
   fetch_dataset = defaultFetchDataset,
 }: {
   children: ReactNode;
-  schema: S;
-  context: ReturnType<typeof createTacoBIContext<S>>;
+  state: {
+    schema: S;
+    context: ReturnType<typeof createTacoBIContext<S>>;
+  };
   fetch_dataset?: FetchDatasetFn<S["datasets"][number]>;
 }) => {
   /**
@@ -67,7 +84,7 @@ const TacoBIProvider = <S extends Schema>({
   const getDataset = useCallback(
     async <D extends S["datasets"][number]>(datasetId: D["id"]) => {
       // Get the metadata of the dataset by its ID
-      const datasetMetadata = schema.datasets.find(
+      const datasetMetadata = state.schema.datasets.find(
         (dataset) => dataset.id === datasetId
       ) as D;
 
@@ -77,10 +94,14 @@ const TacoBIProvider = <S extends Schema>({
       // Return the dataset with the correct type
       return dataset as Dataset<D["dataset_schema"]>;
     },
-    [fetch_dataset, schema]
+    [fetch_dataset, state.schema]
   );
 
-  return <context.Provider value={{ getDataset }}>{children}</context.Provider>;
+  return (
+    <state.context.Provider value={{ getDataset }}>
+      {children}
+    </state.context.Provider>
+  );
   /**
    * TODO
    * 1. Add a useDatasets hook to the context and, without using the state, just do the fetch.
@@ -127,24 +148,16 @@ const jsonSchema = {
   ],
 } as const satisfies Schema;
 
-const myContext = createTacoBIContext<typeof jsonSchema>();
+const { useTacoBI, state } = createTacoBI(jsonSchema);
 
 const App: FC<{ children?: ReactNode }> = ({ children }) => {
-  return (
-    <TacoBIProvider
-      context={myContext}
-      schema={jsonSchema}
-      fetch_dataset={defaultFetchDataset}
-    >
-      {children}
-    </TacoBIProvider>
-  );
+  return <TacoBIProvider state={state}>{children}</TacoBIProvider>;
 };
 
 export const AppProvided: FC = () => {
-  const { getDataset } = useContext(myContext);
+  const { getDataset } = useTacoBI();
 
-  const dataset = useMemo(() => getDataset("dataset-2"), [getDataset]);
+  const dataset = useMemo(() => getDataset("dataset-3"), [getDataset]);
 
   return (
     <App>
