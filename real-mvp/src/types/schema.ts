@@ -45,7 +45,7 @@ export type DatasetMetadata = {
 /**
  * Collection of dataset metadatas and schemas generated from the schema JSON.
  */
-export type Schema = {
+export type TacoBISpec = {
   datasets: readonly DatasetMetadata[];
 };
 
@@ -75,57 +75,12 @@ export type Dataset<S extends DatasetSchema> = {
  * Extracts a dataset metadata from the schema based on its ID.
  * @template S - The schema type
  * @template ID - The dataset ID type
- * @param schema - The schema to extract the dataset metadata from.
- * @param id - The ID of the dataset metadata to extract.
  * @returns The dataset metadata.
- *
- * Only accepts dataset IDs contained within the schema JSON.
  */
-export function getDatasetMetadata<
-  S extends Schema,
+export type GetDatasetMetadata<
+  S extends TacoBISpec,
   ID extends S["datasets"][number]["id"]
->(schema: S, id: ID): Extract<S["datasets"][number], { id: ID }> {
-  const dataset = schema.datasets.find((d) => d.id === id);
-  if (!dataset) {
-    throw new Error(`Dataset with ID ${id} not found`);
-  }
-  return dataset as Extract<S["datasets"][number], { id: ID }>;
-}
-
-const jsonSchema = {
-  datasets: [
-    {
-      id: "dataset-1",
-      route: "/dataset-1",
-      type: "tabular",
-      dataset_schema: {
-        columns: [
-          {
-            name: "Day",
-            valueType: "string",
-          },
-          {
-            name: "Week",
-            valueType: "number",
-          },
-        ],
-      },
-    },
-    {
-      id: "dataset-2",
-      route: "/dataset-1",
-      type: "tabular",
-      dataset_schema: {
-        columns: [
-          {
-            name: "Day",
-            valueType: "string",
-          },
-        ],
-      },
-    },
-  ],
-} as const satisfies Schema;
+> = Extract<S["datasets"][number], { id: ID }>;
 
 // Now TypeScript checks IDs properly
 // export const dataset1Metadata = getDatasetMetadata(jsonSchema, "dataset-1");
