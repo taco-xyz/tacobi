@@ -1,10 +1,11 @@
-from typing import Callable, cast
+from typing import Callable
 
 import uvicorn
 from fastapi import FastAPI
 from pandera.typing.common import DataFrameBase
 
-from tacobi.backend import pa
+from tacobi.caching import CacheAdapter, DiskCacheAdapter
+from tacobi.pandera import pa
 from tacobi.schema import Dataset, DatasetFunctionType, DatasetTypeEnum, Schema
 from tacobi.type_utils import (
     extract_container_type,
@@ -14,40 +15,86 @@ from tacobi.type_utils import (
 
 
 class Tacobi:
-    def __init__(self, fastapi_app: FastAPI | None = None):
+    def __init__(
+        self,
+        fastapi_app: FastAPI | None = None,
+        cache_adapter: CacheAdapter | None = None,
+    ):
         self._fastapi_app = fastapi_app if fastapi_app is not None else FastAPI()
         self._datasets: list[Dataset] = []
+        self._cache_adapter = (
+            cache_adapter if cache_adapter is not None else DiskCacheAdapter()
+        )
+
+    def _attach_type_check_to_func(
+        self, func: DatasetFunctionType
+    ) -> DatasetFunctionType:
+        """Attach pandera typechecking to a function.
+
+        This is a simple wrapper around pandera's check_types function.
+        This is implemented in a separate function mainly to prevent mypy from complaining.
+
+        Args:
+            func: The function to attach the typechecking to.
+
+        Returns:
+            The function with the typechecking attached.
+        """
+        return pa.check_types(func)
+
+    def _attach_dataset_to_fastapi(self, dataset: Dataset):
+        """Attach a dataset to a FastAPI route.
+
+        We infer the return model from the function's return type.
+        We alter the return model to be serializable by fastapi.
+
+        Args:
+            dataset: The dataset to attach to the FastAPI route.
+        """
+        return_type = extract_return_type(dataset.function)
+        container_type = extract_container_type(return_type, DataFrameBase)
+        model = extract_model_from_typehints(
+            dataset.function, container_type, pa.DataFrameModel
+        )
+
+        class FastApiModel(model):  # type: ignore
+            class Config(model.Config):  # type: ignore
+                to_format = "dict"
+                to_format_kwargs = {"orient": "records"}
+
+        self._fastapi_app.get(
+            dataset.route, response_model=container_type[FastApiModel]
+        )(dataset.function)
 
     def dataset(
         self, route: str, dataset_type: DatasetTypeEnum
     ) -> Callable[[DatasetFunctionType], DatasetFunctionType]:
+        """Decorator to define a dataset.
+
+        This decorator also attaches typechecking functionality to the function and properly registers
+        it with the FastAPI app.
+
+        Args:
+            route: The route at which the dataset can be accessed from the api.
+            dataset_type: The type of dataset.
+
+        Returns:
+            The decorated function.
+        """
+
         def decorator(func: DatasetFunctionType) -> DatasetFunctionType:
-            type_checked_func = pa.check_types(func)
-            type_checked_func = cast(DatasetFunctionType, type_checked_func)
+            type_checked_func = self._attach_type_check_to_func(func)
 
-            self._datasets.append(
-                Dataset(
-                    id=type_checked_func.__name__,
-                    route=route,
-                    type=dataset_type,
-                    function=type_checked_func,
-                )
+            dataset = Dataset(
+                id=type_checked_func.__name__,
+                route=route,
+                type=dataset_type,
+                function=type_checked_func,
             )
 
-            return_type = extract_return_type(func)
-            container_type = extract_container_type(return_type, DataFrameBase)
-            model = extract_model_from_typehints(
-                func, container_type, pa.DataFrameModel
-            )
+            self._datasets.append(dataset)
 
-            class FastApiModel(model):  # type: ignore
-                class Config(model.Config):  # type: ignore
-                    to_format = "dict"
-                    to_format_kwargs = {"orient": "records"}
-
-            self._fastapi_app.get(route, response_model=container_type[FastApiModel])(
-                type_checked_func
-            )
+            self._attach_dataset_to_fastapi(dataset)
 
             return type_checked_func
 
