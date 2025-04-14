@@ -39,3 +39,4 @@ def test() -> DataFrame[TestModel]:
 if __name__ == "__main__":
     print(tacobi.get_schema().model_dump_json())
     tacobi.run()
+

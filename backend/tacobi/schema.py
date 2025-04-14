@@ -1,10 +1,11 @@
+from datetime import timedelta
 from enum import Enum
 from typing import Callable, Iterable, Type, TypeVar
 
 from pandera.typing.common import DataFrameBase
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, Field, computed_field, field_validator
 
-from tacobi.backend import pa
+from tacobi.pandera import pa
 from tacobi.type_utils import extract_model_from_typehints
 from tacobi.value_types import ValueTypeEnum
 
@@ -71,6 +72,14 @@ class Dataset(BaseModel):
     route: str
     type: DatasetTypeEnum
     function: DatasetFunctionType = Field(exclude=True)
+    cache_validity: timedelta | None = Field(exclude=True, default=None)
+
+    @field_validator("cache_validity")
+    def validate_cache_validity(cls, v: timedelta | None) -> timedelta | None:
+        """Validate that cache_validity is a positive timedelta if provided."""
+        if v is not None and v.total_seconds() <= 0:
+            raise ValueError("cache_validity must be a positive timedelta")
+        return v
 
     @property
     def dataframe_model(self) -> Type[pa.DataFrameModel]:

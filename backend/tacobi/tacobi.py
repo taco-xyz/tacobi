@@ -1,4 +1,6 @@
-from typing import Callable
+from datetime import timedelta
+from functools import wraps
+from typing import Callable, TypeVar
 
 import uvicorn
 from fastapi import FastAPI
@@ -6,12 +8,15 @@ from pandera.typing.common import DataFrameBase
 
 from tacobi.caching import CacheAdapter, DiskCacheAdapter
 from tacobi.pandera import pa
-from tacobi.schema import Dataset, DatasetFunctionType, DatasetTypeEnum, Schema
+from tacobi.schema import Dataset, DatasetTypeEnum, Schema
 from tacobi.type_utils import (
     extract_container_type,
     extract_model_from_typehints,
     extract_return_type,
 )
+
+DataFrameBaseT = TypeVar("DataFrameBaseT", bound=DataFrameBase)
+DatasetFunctionType = Callable[[], DataFrameBaseT] 
 
 
 class Tacobi:
@@ -42,6 +47,24 @@ class Tacobi:
         """
         return pa.check_types(func)
 
+    def _attach_cache_to_function(
+        self, func: DatasetFunctionType, cache_validity: timedelta
+    ) -> DatasetFunctionType:
+        @wraps(func)
+        def cached_func():
+            cache_key = func.__name__
+            cached_value = self._cache_adapter.get(cache_key)
+            if cached_value is not None:
+                return cached_value
+            else:
+                value = func()
+                self._cache_adapter.set(
+                    cache_key, value, cache_validity.total_seconds()
+                )
+                return value
+
+        return cached_func
+
     def _attach_dataset_to_fastapi(self, dataset: Dataset):
         """Attach a dataset to a FastAPI route.
 
@@ -67,7 +90,10 @@ class Tacobi:
         )(dataset.function)
 
     def dataset(
-        self, route: str, dataset_type: DatasetTypeEnum
+        self,
+        route: str,
+        dataset_type: DatasetTypeEnum,
+        cache_validity: timedelta | None = None,
     ) -> Callable[[DatasetFunctionType], DatasetFunctionType]:
         """Decorator to define a dataset.
 
@@ -77,26 +103,31 @@ class Tacobi:
         Args:
             route: The route at which the dataset can be accessed from the api.
             dataset_type: The type of dataset.
+            cache_validity: The validity of the cache for the dataset. If none, caching is disabled.
 
         Returns:
             The decorated function.
         """
 
         def decorator(func: DatasetFunctionType) -> DatasetFunctionType:
-            type_checked_func = self._attach_type_check_to_func(func)
+            func = self._attach_type_check_to_func(func)
+
+            if cache_validity is not None:
+                func = self._attach_cache_to_function(func, cache_validity)
 
             dataset = Dataset(
-                id=type_checked_func.__name__,
+                id=func.__name__,
                 route=route,
                 type=dataset_type,
-                function=type_checked_func,
+                function=func,
+                cache_validity=cache_validity,
             )
 
             self._datasets.append(dataset)
 
             self._attach_dataset_to_fastapi(dataset)
 
-            return type_checked_func
+            return func
 
         return decorator
 
