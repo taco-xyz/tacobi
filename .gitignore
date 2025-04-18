@@ -4,3 +4,4 @@ venv/
 .DS_Store
 .pytest_cache/
 .cache/
+node_modules/
