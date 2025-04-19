@@ -38,7 +38,7 @@ const AppProvider = () => {
 
 const App = () => {
   const { TacoChart, useDatasets } = useTacoBI();
-  const [dataset2] = useDatasets(["dataset-2"]);
+  const [dataset1, dataset2] = useDatasets(["dataset-1", "dataset-2"]);
 
   return (
     <TacoChart
