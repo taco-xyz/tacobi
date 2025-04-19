@@ -23,6 +23,19 @@ export interface DatasetSchema {
   columns: ColumnSchema[];
 }
 
+export interface DatasetLoaded<S extends DatasetSchema> {
+  isLoading: false;
+  data: S["columns"][number]["valueType"];
+}
+
+export interface DatasetLoading {
+  isLoading: true;
+}
+
+export type Dataset<S extends DatasetSchema> =
+  | DatasetLoaded<S>
+  | DatasetLoading;
+
 /**
  * Metadata about a dataset, containing an id, route, and schema.
  * @property id - The id of the dataset.
@@ -69,6 +82,9 @@ export interface TacoBISpec {
  */
 export type ExtractDatasetIds<S extends TacoBISpec> =
   S["datasets"][number]["id"];
+
+export type ExtractDatasetSchemas<S extends TacoBISpec> =
+  S["datasets"][number]["dataset_schema"];
 
 /**
  * Utility type to extract the column names of a dataset.

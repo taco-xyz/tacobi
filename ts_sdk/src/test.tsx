@@ -37,7 +37,9 @@ const AppProvider = () => {
 };
 
 const App = () => {
-  const { TacoChart } = useTacoBI();
+  const { TacoChart, useDatasets } = useTacoBI();
+  const [dataset2] = useDatasets(["dataset-2"]);
+
   return (
     <TacoChart
       options={[
@@ -48,7 +50,7 @@ const App = () => {
               type: "bar",
               encode: {
                 x: "Beverage",
-                y: ""
+                y: "Price",
               },
             },
           ],
