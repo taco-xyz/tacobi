@@ -33,6 +33,8 @@ const spec = {
   ],
 } as const satisfies TacoBISpec;
 
+export type Spec = typeof spec;
+
 const { state, useTacoBI } = createTacoBI({
   spec,
   url: "http://localhost:8000",

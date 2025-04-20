@@ -2,7 +2,6 @@ import {
   Dataset,
   ExtractDatasetIds,
   ExtractDatasetMetadata,
-  ExtractDatasetSchemas,
   TacoBISpec,
 } from "@/tacobi/schema";
 import { TacoChartProps } from "@/tacobi/chart";
@@ -26,9 +25,9 @@ export interface TacoBIContext<S extends TacoBISpec> {
   TacoChart: FC<TacoChartProps<S>>;
   isLoading: boolean;
   useDatasets: <T extends ExtractDatasetIds<S>[]>(
-    ids: [...T]
+    ids: [...T],
   ) => {
-    [K in keyof T]: Dataset<ExtractDatasetMetadata<S>>;
+    [K in keyof T]: Dataset<Extract<S["datasets"][number], { id: T[K] }>>;
   };
 }
 
@@ -180,7 +179,6 @@ export const TacoBIProvider = <S extends TacoBISpec>({
           // Parse the response as JSON
           type DatasetSourceType = Dataset<typeof dataset>["source"];
           const data = (await response.json()) as DatasetSourceType;
-          console.log("Dataset", dataset.id, data);
 
           const loadedDataset: Dataset<typeof dataset> = {
             id: dataset.id,
@@ -227,7 +225,7 @@ export const TacoBIProvider = <S extends TacoBISpec>({
         const dataset = datasets.find((dataset) => dataset.id === id);
         if (dataset === undefined) {
           throw new Error(
-            `Dataset with id ${id} not found, do you have type checking enabled?`
+            `Dataset with id ${id} not found, do you have type checking enabled?`,
           );
         } else {
           returnedDatasets.push(dataset);
@@ -235,10 +233,10 @@ export const TacoBIProvider = <S extends TacoBISpec>({
       }
 
       return returnedDatasets as {
-        [K in keyof T]: Dataset<ExtractDatasetMetadata<S>>;
+        [K in keyof T]: Dataset<Extract<S["datasets"][number], { id: T[K] }>>;
       };
     },
-    [datasets]
+    [datasets],
   );
 
   /**
@@ -249,7 +247,7 @@ export const TacoBIProvider = <S extends TacoBISpec>({
     (props: TacoChartProps<S>) => {
       return <PopulatedTacoChart {...props} datasets={datasets} />;
     },
-    [datasets]
+    [datasets],
   );
 
   const contextValue: TacoBIContext<S> = {
