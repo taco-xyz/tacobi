@@ -9,17 +9,17 @@ export default function Home() {
   const datasets = useDatasets(["dataset-1", "dataset-2"]);
 
   return (
-    <div className="grid bg-white grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <div className="h-[500px] w-[500px] mt-[500px]">
+    <div className="grid min-h-screen grid-rows-[20px_1fr_20px] items-center justify-items-center gap-16 bg-white p-8 pb-20 font-[family-name:var(--font-geist-sans)] sm:p-20">
+      <div className="mt-[500px] h-[500px] w-[500px]">
         <h1 className="text-xl font-semibold text-black">
           Important Statistic
         </h1>
-        <p className="text-sm mt-1 text-gray-700">
+        <p className="mt-1 text-sm text-gray-700">
           This is a line chart that shows the price of beverages.
         </p>
-        <div className="w-full h-[500px]">
+        <div className="h-[500px] w-full">
           {isLoading ? (
-            <div className="flex items-center size-full bg-black justify-center h-full">
+            <div className="flex size-full h-full items-center justify-center bg-black">
               Loading...
             </div>
           ) : (
