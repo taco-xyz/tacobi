@@ -1,3 +1,5 @@
+import { Resolve } from "./utils/resolve";
+
 /**
  * The type of the value in a column. These are based on the valid
  * ECharts types.
@@ -17,8 +19,8 @@ export interface ColumnSchema {
 export type SelectColumnValue<T extends ColumnValue> = T extends "string"
   ? string
   : T extends "number"
-  ? number
-  : never;
+    ? number
+    : never;
 
 /**
  * Dataset schema, containing a list of headers defining the name and type of
@@ -28,6 +30,15 @@ export type SelectColumnValue<T extends ColumnValue> = T extends "string"
 export interface DatasetSchema {
   columns: ColumnSchema[];
 }
+
+/**
+ * Utility type to extract the row type of a dataset.
+ * @param S - The dataset schema.
+ * @returns The row type of the dataset.
+ */
+export type ExtractDatasetRowType<S extends DatasetSchema> = {
+  [C in S["columns"][number] as C["name"]]: SelectColumnValue<C["valueType"]>;
+};
 
 /**
  * Metadata about a dataset, containing an id, route, and schema.
@@ -52,10 +63,7 @@ export interface Dataset<M extends DatasetMetadata> {
   id: M["id"];
   isLoading: boolean;
   /* An array of mappings of column names to values of the given type. */
-  source: Record<
-    M["dataset_schema"]["columns"][number]["name"],
-    SelectColumnValue<M["dataset_schema"]["columns"][number]["valueType"]>
-  >[];
+  source: ExtractDatasetRowType<M["dataset_schema"]>[];
 }
 
 /**
@@ -110,6 +118,27 @@ export type ExtractDatasetSchemas<S extends TacoBISpec> =
   ExtractDatasetMetadata<S>["dataset_schema"];
 
 /**
+ * Utility type to extract the row type based on the full spec from
+ * using the ID
+ */
+export type ExtractDatasetRowTypeFromSpec<
+  S extends TacoBISpec,
+  ID extends ExtractDatasetIds<S>,
+> = Resolve<
+  ExtractDatasetRowType<
+    Extract<S["datasets"][number], { id: ID }>["dataset_schema"]
+  >
+>;
+
+export type ExtractDatasetRowTypeFromDataset<
+  D extends Dataset<DatasetMetadata>,
+> = Resolve<
+  ExtractDatasetRowType<
+    D extends Dataset<infer M> ? M["dataset_schema"] : never
+  >
+>;
+
+/**
  * Utility type to extract the column names of a dataset.
  * @param S - The TacoBISpec.
  * @param ID - The id of the dataset.
@@ -118,7 +147,7 @@ export type ExtractDatasetSchemas<S extends TacoBISpec> =
  */
 export type ExtractDatasetColumnNames<
   S extends TacoBISpec,
-  ID extends ExtractDatasetIds<S>
+  ID extends ExtractDatasetIds<S>,
 > = Extract<
   S["datasets"][number],
   { id: ID }
