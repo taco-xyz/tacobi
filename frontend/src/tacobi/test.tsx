@@ -1,4 +1,4 @@
-import { TacoBISpec } from "./types/schema";
+import { TacoBISpec } from "./schema";
 import { TacoBIProvider, createTacoBI } from "./context";
 
 const testDataset = {
@@ -25,7 +25,7 @@ const testDataset = {
 
 const { useTacoBI, state } = createTacoBI({
   spec: testDataset,
-  url: "http://localhost:3000",
+  url: "http://localhost:8000",
 });
 
 const AppProvider = () => {

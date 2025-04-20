@@ -2,10 +2,10 @@ import {
   ExtractDatasetColumnNames,
   ExtractDatasetIds,
   TacoBISpec,
-} from "@/types/schema";
+} from "@/tacobi/schema";
 import { EChartProps } from "@kbox-labs/react-echarts";
 import { EChartsOption, SeriesOption } from "echarts";
-import { Resolve } from "@/types/utils/resolve";
+import { Resolve } from "@/tacobi/utils/resolve";
 
 /**
  * Series option that can only accept dataset IDs contained within TacoBISchema.

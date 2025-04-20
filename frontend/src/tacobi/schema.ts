@@ -14,6 +14,12 @@ export interface ColumnSchema {
   valueType: ColumnValue;
 }
 
+export type SelectColumnValue<T extends ColumnValue> = T extends "string"
+  ? string
+  : T extends "number"
+  ? number
+  : never;
+
 /**
  * Dataset schema, containing a list of headers defining the name and type of
  * the value in each row.
@@ -22,19 +28,6 @@ export interface ColumnSchema {
 export interface DatasetSchema {
   columns: ColumnSchema[];
 }
-
-export interface DatasetLoaded<S extends DatasetSchema> {
-  isLoading: false;
-  data: S["columns"][number]["valueType"];
-}
-
-export interface DatasetLoading {
-  isLoading: true;
-}
-
-export type Dataset<S extends DatasetSchema> =
-  | DatasetLoaded<S>
-  | DatasetLoading;
 
 /**
  * Metadata about a dataset, containing an id, route, and schema.
@@ -46,6 +39,23 @@ export interface DatasetMetadata {
   id: string;
   route: string;
   dataset_schema: DatasetSchema;
+}
+
+/**
+ * A dataset with the source data. Directly insertable into an ECharts
+ * dataset.
+ * @template M - The metadata of the dataset.
+ * @property isLoading - Whether the dataset is loading.
+ * @property source - The source data of the dataset.
+ */
+export interface Dataset<M extends DatasetMetadata> {
+  id: M["id"];
+  isLoading: boolean;
+  /* An array of mappings of column names to values of the given type. */
+  source: Record<
+    M["dataset_schema"]["columns"][number]["name"],
+    SelectColumnValue<M["dataset_schema"]["columns"][number]["valueType"]>
+  >[];
 }
 
 /**
@@ -76,15 +86,28 @@ export interface TacoBISpec {
 }
 
 /**
+ * Utility type to extract the metadata of a dataset.
+ * @param S - The TacoBISpec.
+ * @returns The metadata of a dataset.
+ */
+export type ExtractDatasetMetadata<S extends TacoBISpec> =
+  S["datasets"][number];
+
+/**
  * Utility type to extract the ids of all datasets in the TacoBISpec.
  * @param S - The TacoBISpec.
  * @returns The ids of all datasets in the TacoBISpec.
  */
 export type ExtractDatasetIds<S extends TacoBISpec> =
-  S["datasets"][number]["id"];
+  ExtractDatasetMetadata<S>["id"];
 
+/**
+ * Utility type to extract the schema of a dataset.
+ * @param S - The TacoBISpec.
+ * @returns The schema of a dataset.
+ */
 export type ExtractDatasetSchemas<S extends TacoBISpec> =
-  S["datasets"][number]["dataset_schema"];
+  ExtractDatasetMetadata<S>["dataset_schema"];
 
 /**
  * Utility type to extract the column names of a dataset.

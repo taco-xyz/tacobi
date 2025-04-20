@@ -6,37 +6,37 @@ from tacobi import DatasetTypeEnum, Tacobi
 tacobi = Tacobi()
 
 
-class TestModelDependency(pa.DataFrameModel):
-    column1: int
+class BeverageModel(pa.DataFrameModel):
+    Beverage: str
+    Price: float
 
 
-@tacobi.dataset("test_dependency_1", DatasetTypeEnum.TABULAR)
-def test_dependency_1() -> DataFrame[TestModelDependency]:
-    return pd.DataFrame({"column1": [1, 2, 3]}).pipe(DataFrame[TestModelDependency])
+@tacobi.dataset("/dataset-1", DatasetTypeEnum.TABULAR)
+async def dataset_1() -> DataFrame[BeverageModel]:
+    """
+    A dataset that contains information about beverages and their prices.
+    """
+
+    return pd.DataFrame(
+        {"Beverage": ["Coffee", "Tea", "Soda"], "Price": [3.5, 2.5, 2.0]}
+    ).pipe(DataFrame[BeverageModel])
 
 
-@tacobi.dataset("test_dependency_2", DatasetTypeEnum.TABULAR)
-def test_dependency_2() -> DataFrame[TestModelDependency]:
-    return pd.DataFrame({"column1": [1, 2, 3]}).pipe(DataFrame[TestModelDependency])
+class CocktailModel(pa.DataFrameModel):
+    Cocktail: str
 
 
-class TestModel(pa.DataFrameModel):
-    column2: int
+@tacobi.dataset("/dataset-2", DatasetTypeEnum.TABULAR)
+async def dataset_2() -> DataFrame[CocktailModel]:
+    """
+    A dataset that contains information about cocktails.
+    """
 
-
-@tacobi.dataset("test", DatasetTypeEnum.TABULAR)
-def test() -> DataFrame[TestModel]:
-    dep1 = test_dependency_1()
-    dep1["column1"] = dep1["column1"] + 1
-
-    dep2 = test_dependency_2()
-    dep2["column1"] = dep2["column1"] + 2
-
-    res = dep1.merge(dep2, on="column1")
-    return res.pipe(DataFrame[TestModel])
+    return pd.DataFrame({"Cocktail": ["Margarita", "Mojito", "Old Fashioned"]}).pipe(
+        DataFrame[CocktailModel]
+    )
 
 
 if __name__ == "__main__":
     print(tacobi.get_schema().model_dump_json())
     tacobi.run()
-

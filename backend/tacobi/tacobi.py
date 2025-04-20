@@ -4,6 +4,7 @@ from typing import Callable, TypeVar
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pandera.typing.common import DataFrameBase
 
 from tacobi.caching import CacheAdapter, DiskCacheAdapter
@@ -16,7 +17,7 @@ from tacobi.type_utils import (
 )
 
 DataFrameBaseT = TypeVar("DataFrameBaseT", bound=DataFrameBase)
-DatasetFunctionType = Callable[[], DataFrameBaseT] 
+DatasetFunctionType = Callable[[], DataFrameBaseT]
 
 
 class Tacobi:
@@ -26,6 +27,13 @@ class Tacobi:
         cache_adapter: CacheAdapter | None = None,
     ):
         self._fastapi_app = fastapi_app if fastapi_app is not None else FastAPI()
+        self._fastapi_app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],  # Allows all origins
+            allow_credentials=True,
+            allow_methods=["*"],  # Allows all methods
+            allow_headers=["*"],  # Allows all headers
+        )
         self._datasets: list[Dataset] = []
         self._cache_adapter = (
             cache_adapter if cache_adapter is not None else DiskCacheAdapter()

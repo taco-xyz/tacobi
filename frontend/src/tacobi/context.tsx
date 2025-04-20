@@ -1,12 +1,11 @@
 import {
   Dataset,
-  DatasetLoaded,
-  DatasetLoading,
   ExtractDatasetIds,
+  ExtractDatasetMetadata,
   ExtractDatasetSchemas,
   TacoBISpec,
-} from "@/types/schema";
-import { TacoChartProps } from "@/types/chart";
+} from "@/tacobi/schema";
+import { TacoChartProps } from "@/tacobi/chart";
 import {
   FC,
   ReactNode,
@@ -25,12 +24,11 @@ import { DatasetOption } from "echarts/types/dist/shared";
  */
 export interface TacoBIContext<S extends TacoBISpec> {
   TacoChart: FC<TacoChartProps<S>>;
+  isLoading: boolean;
   useDatasets: <T extends ExtractDatasetIds<S>[]>(
     ids: [...T]
   ) => {
-    [K in keyof T]: Dataset<
-      Extract<S["datasets"][number], { id: T[K] }>["dataset_schema"]
-    >;
+    [K in keyof T]: Dataset<ExtractDatasetMetadata<S>>;
   };
 }
 
@@ -46,6 +44,7 @@ const createTacoBIContext = <S extends TacoBISpec>() =>
     useDatasets: () => {
       throw new Error("useDatasets not implemented");
     },
+    isLoading: true,
   });
 
 /**
@@ -168,7 +167,7 @@ export const TacoBIProvider = <S extends TacoBISpec>({
 }) => {
   // Cached dataset data. On page load, all datasets are fetched and cached.
   const [datasets, setDatasets] = useState<
-    (DatasetLoaded<ExtractDatasetSchemas<S>> & { id: string })[]
+    Dataset<ExtractDatasetMetadata<S>>[]
   >([]);
 
   useEffect(() => {
@@ -178,20 +177,18 @@ export const TacoBIProvider = <S extends TacoBISpec>({
         const datasetPromises = state.spec.datasets.map(async (dataset) => {
           // Fetch
           const response = await fetch(`${state.url}${dataset.route}`);
-
           // Parse the response as JSON
-          const data = await response.json();
-          const loadedDataset: DatasetLoaded<
-            (typeof dataset)["dataset_schema"]
-          > = {
+          type DatasetSourceType = Dataset<typeof dataset>["source"];
+          const data = (await response.json()) as DatasetSourceType;
+          console.log("Dataset", dataset.id, data);
+
+          const loadedDataset: Dataset<typeof dataset> = {
+            id: dataset.id,
             isLoading: false,
-            data: data,
+            source: data,
           };
 
-          return {
-            ...loadedDataset,
-            id: dataset.id,
-          };
+          return loadedDataset;
         });
 
         // Wait for all datasets to be fetched
@@ -207,6 +204,10 @@ export const TacoBIProvider = <S extends TacoBISpec>({
     fetchAllDatasets();
   }, [state.spec.datasets, state.url]);
 
+  const isLoading = useMemo(() => {
+    return datasets.length === 0;
+  }, [datasets]);
+
   /**
    * Hook for the TacoBI context. You can import the `TacoChart` component
    * from the context and refer to all datasets within the context's spec.
@@ -217,11 +218,11 @@ export const TacoBIProvider = <S extends TacoBISpec>({
     <T extends ExtractDatasetIds<S>[]>(ids: [...T]) => {
       if (datasets.length === 0) {
         return ids.map(() => ({ isLoading: true })) as {
-          [K in keyof T]: DatasetLoading;
+          [K in keyof T]: Dataset<ExtractDatasetMetadata<S>>;
         };
       }
 
-      const returnedDatasets: DatasetLoaded<ExtractDatasetSchemas<S>>[] = [];
+      const returnedDatasets: Dataset<ExtractDatasetMetadata<S>>[] = [];
       for (const id of ids) {
         const dataset = datasets.find((dataset) => dataset.id === id);
         if (dataset === undefined) {
@@ -232,8 +233,9 @@ export const TacoBIProvider = <S extends TacoBISpec>({
           returnedDatasets.push(dataset);
         }
       }
+
       return returnedDatasets as {
-        [K in keyof T]: DatasetLoaded<ExtractDatasetSchemas<S>>;
+        [K in keyof T]: Dataset<ExtractDatasetMetadata<S>>;
       };
     },
     [datasets]
@@ -253,6 +255,7 @@ export const TacoBIProvider = <S extends TacoBISpec>({
   const contextValue: TacoBIContext<S> = {
     TacoChart,
     useDatasets,
+    isLoading,
   };
 
   return (
