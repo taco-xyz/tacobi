@@ -19,6 +19,7 @@ import {
 } from "react";
 import { EChart } from "@kbox-labs/react-echarts";
 import { DatasetOption } from "echarts/types/dist/shared";
+import { Resolve } from "./utils/resolve";
 
 /**
  * A type that orders the dataset requests by the ids.
@@ -107,6 +108,12 @@ export const createTacoBI = <S extends TacoBISpec>({
   };
 };
 
+type DatasetById<S extends TacoBISpec> = {
+  [K in ExtractDatasetIds<S>]: DatasetRequest<
+    Extract<ExtractDatasetMetadata<S>, { id: K }>
+  >;
+};
+
 /**
  * Provider for the TacoBI context. You can import the `TacoChart` component
  * from the context and refer to all datasets within the context's spec.
@@ -115,10 +122,7 @@ export const createTacoBI = <S extends TacoBISpec>({
  * @returns The provider.
  *
  * @abstract
- * The context provides multiple properties:
- * - `TacoChart`: A component that renders a chart. This component is based on
- * ECharts and automatically memoizes datasets as you use them in series, so
- * you do NOT need to manually fetch them.
+ * The context provides the following properties:
  * - `useDatasets`: A hook that returns the datasets in order of the ids. If
  * you need to use the datasets directly to make something more customizable,
  * use this instead.
@@ -139,11 +143,8 @@ export const createTacoBI = <S extends TacoBISpec>({
  * };
  *
  * const AppProvided: FC = () => {
- *   const { TacoChart, useDatasets } = useTacoBI();
- *
- *   return (
- *     <TacoChart />
- *   );
+ *   const { useDatasets } = useTacoBI();
+ *   const [dataset1, dataset2] = useDatasets(["dataset-1", "dataset-2"]);
  * };
  * ```
  */
@@ -155,9 +156,63 @@ export const TacoBIProvider = <S extends TacoBISpec>({
   state: TacoBIState<S>;
 }) => {
   // Cached dataset data. On page load, all datasets are fetched and cached.
-  const [datasets, setDatasets] = useState<
-    DatasetRequest<ExtractDatasetMetadata<S>>[]
-  >([]);
+  const [datasetsById, setDatasetsById] = useState<DatasetById<S>>(
+    () => {
+      const initialState: Partial<DatasetById<S>> = {};
+      state.spec.datasets.forEach((meta) => {
+        initialState[meta.id as ExtractDatasetIds<S>] = {
+          id: meta.id,
+          state: "pending",
+        } as DatasetRequestPending<typeof meta>;
+      });
+      return initialState as DatasetById<S>;
+    }
+  );
+
+  /**
+   * On page load, fetch all datasets and cache them.
+   * This is done using functional updates to the state to avoid race conditions.
+   */
+  useEffect(() => {
+    // For each dataset, start by marking it as pending.
+    state.spec.datasets.forEach((meta) => {
+      setDatasetsById((prev) => ({
+        ...prev,
+        [meta.id]: { id: meta.id, state: "pending" } as DatasetRequestPending<
+          typeof meta
+        >,
+      }));
+
+      // Fetch the dataset and update the state.
+      fetch(`${state.url}${meta.route}`)
+        .then((res) => {
+          if (!res.ok) throw new Error(res.statusText);
+          return res.json();
+        })
+        .then((rows: ExtractDatasetRowType<(typeof meta)["dataset_schema"]>[]) => {
+          // If the dataset loads successfully, mark it as loaded.
+          setDatasetsById((prev) => ({
+            ...prev,
+            [meta.id]: {
+              id: meta.id,
+              state: "loaded",
+              source: rows,
+            },
+          }));
+        })
+        .catch((error) => {
+          // If the dataset fails to load, mark it as an error.
+          setDatasetsById((prev) => ({
+            ...prev,
+            [meta.id]: {
+              id: meta.id,
+              state: "error",
+              error,
+            },
+          }));
+        });
+    });
+  }, [state.url, state.spec.datasets]);
 
   /**
    * Hook for the TacoBI context. You can import the `TacoChart` component
@@ -168,14 +223,15 @@ export const TacoBIProvider = <S extends TacoBISpec>({
   const useDatasets = useCallback(
     <T extends ExtractDatasetIds<S>[]>(ids: [...T]) => {
       const datasets: DatasetRequest<ExtractDatasetMetadata<S>>[] = [];
-      for (const dataset of datasets) {
-        if (ids.includes(dataset.id)) {
+      for (const id of ids) {
+        const dataset = datasetsById[id];
+        if (dataset) {
           datasets.push(dataset);
         }
       }
       return datasets as OrderedDatasetRequests<S, T>;
     },
-    [datasets]
+    [datasetsById]
   );
 
   const contextValue: TacoBIContext<S> = {

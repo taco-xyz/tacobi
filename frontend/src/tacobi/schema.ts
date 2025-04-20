@@ -1,3 +1,5 @@
+import { Resolve } from "./utils/resolve";
+
 /**
  * The type of the value in a column. These are based on the valid
  * ECharts types.
@@ -83,7 +85,7 @@ export interface DatasetRequestError<M extends DatasetMetadata> {
 export interface DatasetRequestLoaded<M extends DatasetMetadata> {
   id: M["id"];
   state: "loaded";
-  source: ExtractDatasetRowType<M["dataset_schema"]>[];
+  source: Resolve<ExtractDatasetRowType<M["dataset_schema"]>>[];
 }
 
 /**
