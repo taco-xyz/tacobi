@@ -20,6 +20,16 @@ const spec = {
         columns: [{ name: "Cocktail", valueType: "string" }],
       },
     },
+    {
+      id: "bitcoin-price",
+      route: "/bitcoin-price",
+      dataset_schema: {
+        columns: [
+          { name: "Date", valueType: "string" },
+          { name: "Price", valueType: "number" },
+        ],
+      },
+    },
   ],
 } as const satisfies TacoBISpec;
 
