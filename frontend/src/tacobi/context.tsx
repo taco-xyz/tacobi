@@ -1,8 +1,9 @@
 import {
-  Dataset,
+  DatasetRequest,
+  DatasetRequestPending,
   ExtractDatasetIds,
   ExtractDatasetMetadata,
-  ExtractDatasetSchemas,
+  ExtractDatasetRowType,
   TacoBISpec,
 } from "@/tacobi/schema";
 import { TacoChartProps } from "@/tacobi/chart";
@@ -18,18 +19,31 @@ import {
 } from "react";
 import { EChart } from "@kbox-labs/react-echarts";
 import { DatasetOption } from "echarts/types/dist/shared";
+import { Resolve } from "./utils/resolve";
+
+/**
+ * A type that orders the dataset requests by the ids.
+ * @template S - The spec of the TacoBI context.
+ * @template T - The ids of the datasets to fetch.
+ */
+export type OrderedDatasetRequests<
+  S extends TacoBISpec,
+  T extends ExtractDatasetIds<S>[]
+> = [
+  ...{
+    [K in keyof T]: DatasetRequest<
+      Extract<S["datasets"][number], { id: T[K] }>
+    >;
+  }
+];
 
 /**
  * Utils that can be imported from the TacoBI context.
  */
 export interface TacoBIContext<S extends TacoBISpec> {
-  TacoChart: FC<TacoChartProps<S>>;
-  isLoading: boolean;
   useDatasets: <T extends ExtractDatasetIds<S>[]>(
     ids: [...T]
-  ) => {
-    [K in keyof T]: Dataset<ExtractDatasetMetadata<S>>;
-  };
+  ) => OrderedDatasetRequests<S, T>;
 }
 
 /**
@@ -38,13 +52,9 @@ export interface TacoBIContext<S extends TacoBISpec> {
  */
 const createTacoBIContext = <S extends TacoBISpec>() =>
   createContext<TacoBIContext<S>>({
-    TacoChart: () => {
-      throw new Error("TacoChart not implemented");
-    },
     useDatasets: () => {
       throw new Error("useDatasets not implemented");
     },
-    isLoading: true,
   });
 
 /**
@@ -99,23 +109,13 @@ export const createTacoBI = <S extends TacoBISpec>({
 };
 
 /**
- * Generates a TacoChart component with all the datasets already populated.
- * @param options - The options of the TacoChart.
- * @param datasets - The datasets of the TacoChart.
- * @returns The TacoChart component.
+ * Utility type - a mapping of dataset ids to their requests.
+ * @template S - The spec of the TacoBI context.
  */
-const PopulatedTacoChart = <S extends TacoBISpec>({
-  options,
-  datasets,
-}: TacoChartProps<S> & { datasets: DatasetOption[] }) => {
-  const populatedOptions = useMemo(() => {
-    return options.map((option) => ({
-      ...option,
-      dataset: datasets,
-    }));
-  }, [options, datasets]);
-
-  return <EChart options={populatedOptions} />;
+type DatasetRequestById<S extends TacoBISpec> = {
+  [K in ExtractDatasetIds<S>]: DatasetRequest<
+    Extract<ExtractDatasetMetadata<S>, { id: K }>
+  >;
 };
 
 /**
@@ -126,10 +126,7 @@ const PopulatedTacoChart = <S extends TacoBISpec>({
  * @returns The provider.
  *
  * @abstract
- * The context provides multiple properties:
- * - `TacoChart`: A component that renders a chart. This component is based on
- * ECharts and automatically memoizes datasets as you use them in series, so
- * you do NOT need to manually fetch them.
+ * The context provides the following properties:
  * - `useDatasets`: A hook that returns the datasets in order of the ids. If
  * you need to use the datasets directly to make something more customizable,
  * use this instead.
@@ -150,11 +147,8 @@ const PopulatedTacoChart = <S extends TacoBISpec>({
  * };
  *
  * const AppProvided: FC = () => {
- *   const { TacoChart, useDatasets } = useTacoBI();
- *
- *   return (
- *     <TacoChart />
- *   );
+ *   const { useDatasets } = useTacoBI();
+ *   const [dataset1, dataset2] = useDatasets(["dataset-1", "dataset-2"]);
  * };
  * ```
  */
@@ -166,47 +160,55 @@ export const TacoBIProvider = <S extends TacoBISpec>({
   state: TacoBIState<S>;
 }) => {
   // Cached dataset data. On page load, all datasets are fetched and cached.
-  const [datasets, setDatasets] = useState<
-    Dataset<ExtractDatasetMetadata<S>>[]
-  >([]);
+  const [datasetsById, setDatasetsById] = useState<DatasetRequestById<S>>(
+    () => {
+      return state.spec.datasets.reduce((acc, meta) => {
+        acc[meta.id as ExtractDatasetIds<S>] = {
+          id: meta.id,
+          state: "pending" as const,
+        };
+        return acc;
+      }, {} as DatasetRequestById<S>);
+    }
+  );
 
+  /**
+   * On page load, fetch all datasets and cache them.
+   * This is done using functional updates to the state to avoid race conditions.
+   */
   useEffect(() => {
-    const fetchAllDatasets = async () => {
-      try {
-        // Fetch all datasets from the TacoBI backend.
-        const datasetPromises = state.spec.datasets.map(async (dataset) => {
-          // Fetch
-          const response = await fetch(`${state.url}${dataset.route}`);
-          // Parse the response as JSON
-          type DatasetSourceType = Dataset<typeof dataset>["source"];
-          const data = (await response.json()) as DatasetSourceType;
-          console.log("Dataset", dataset.id, data);
-
-          const loadedDataset: Dataset<typeof dataset> = {
-            id: dataset.id,
-            isLoading: false,
-            source: data,
-          };
-
-          return loadedDataset;
+    // For each dataset, start by marking it as pending.
+    state.spec.datasets.forEach((meta) => {
+      // Fetch the dataset and update the state.
+      fetch(`${state.url}${meta.route}`)
+        .then((res) => {
+          if (!res.ok) throw new Error(res.statusText);
+          return res.json();
+        })
+        .then((rows: ExtractDatasetRowType<(typeof meta)["dataset_schema"]>[]) => {
+          // If the dataset loads successfully, mark it as loaded.
+          setDatasetsById((prev) => ({
+            ...prev,
+            [meta.id]: {
+              id: meta.id,
+              state: "loaded",
+              source: rows,
+            },
+          }));
+        })
+        .catch((error) => {
+          // If the dataset fails to load, mark it as an error.
+          setDatasetsById((prev) => ({
+            ...prev,
+            [meta.id]: {
+              id: meta.id,
+              state: "error",
+              error,
+            },
+          }));
         });
-
-        // Wait for all datasets to be fetched
-        const fetchedDatasets = await Promise.all(datasetPromises);
-
-        // Update state with new datasets
-        setDatasets(fetchedDatasets);
-      } catch (error) {
-        console.error("Failed to fetch datasets:", error);
-      }
-    };
-
-    fetchAllDatasets();
-  }, [state.spec.datasets, state.url]);
-
-  const isLoading = useMemo(() => {
-    return datasets.length === 0;
-  }, [datasets]);
+    });
+  }, [state.url, state.spec.datasets]);
 
   /**
    * Hook for the TacoBI context. You can import the `TacoChart` component
@@ -216,46 +218,20 @@ export const TacoBIProvider = <S extends TacoBISpec>({
    */
   const useDatasets = useCallback(
     <T extends ExtractDatasetIds<S>[]>(ids: [...T]) => {
-      if (datasets.length === 0) {
-        return ids.map(() => ({ isLoading: true })) as {
-          [K in keyof T]: Dataset<ExtractDatasetMetadata<S>>;
-        };
-      }
-
-      const returnedDatasets: Dataset<ExtractDatasetMetadata<S>>[] = [];
+      const datasets: DatasetRequest<ExtractDatasetMetadata<S>>[] = [];
       for (const id of ids) {
-        const dataset = datasets.find((dataset) => dataset.id === id);
-        if (dataset === undefined) {
-          throw new Error(
-            `Dataset with id ${id} not found, do you have type checking enabled?`
-          );
-        } else {
-          returnedDatasets.push(dataset);
+        const dataset = datasetsById[id];
+        if (dataset) {
+          datasets.push(dataset);
         }
       }
-
-      return returnedDatasets as {
-        [K in keyof T]: Dataset<ExtractDatasetMetadata<S>>;
-      };
+      return datasets as OrderedDatasetRequests<S, T>;
     },
-    [datasets]
-  );
-
-  /**
-   * Memoized TacoChart component with all the datasets already populated.
-   * Must be regenerated every time the datasets change.
-   */
-  const TacoChart = useCallback(
-    (props: TacoChartProps<S>) => {
-      return <PopulatedTacoChart {...props} datasets={datasets} />;
-    },
-    [datasets]
+    [datasetsById]
   );
 
   const contextValue: TacoBIContext<S> = {
-    TacoChart,
     useDatasets,
-    isLoading,
   };
 
   return (
