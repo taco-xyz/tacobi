@@ -21,7 +21,7 @@ export const baseLabelOptions = (options?: LabelOption) =>
       fontSize: 12,
       color: "#d0d0d0",
     },
-    options || {}
+    options || {},
   ) satisfies LabelOption;
 
 export const baseTooltipOptions = (options?: Partial<TooltipComponentOption>) =>
@@ -61,7 +61,7 @@ export const baseTooltipOptions = (options?: Partial<TooltipComponentOption>) =>
         return tooltipContent;
       },
     },
-    options || {}
+    options || {},
   ) satisfies TooltipComponentOption;
 
 export type LegendOptionsWithRequiredData = {
@@ -89,7 +89,7 @@ export const baseLegendOptions = (options: LegendOptionsWithRequiredData) =>
       pageTextStyle: baseLabelOptions(),
       textStyle: baseLabelOptions({ color: "inherit" }),
     },
-    options
+    options,
   ) satisfies LegendComponentOption;
 
 export type XAxisOptionsWithRequiredData = {
@@ -97,7 +97,7 @@ export type XAxisOptionsWithRequiredData = {
 } & Partial<Omit<XAXisComponentOption, "data" | "type">>;
 
 export const baseXAxisCategoryOptions = (
-  options: XAxisOptionsWithRequiredData
+  options: XAxisOptionsWithRequiredData,
 ) =>
   merge(
     {
@@ -108,7 +108,7 @@ export const baseXAxisCategoryOptions = (
           overflow: "break",
           width: 100,
         }),
-        { interval: 0 }
+        { interval: 0 },
       ),
       axisLine: {
         lineStyle: {
@@ -116,11 +116,11 @@ export const baseXAxisCategoryOptions = (
         },
       },
     },
-    options
+    options,
   ) satisfies XAXisComponentOption;
 
 export const baseYAxisValueOptions = (
-  options?: Partial<Omit<YAXisComponentOption, "type">>
+  options?: Partial<Omit<YAXisComponentOption, "type">>,
 ) =>
   merge(
     {
@@ -144,7 +144,7 @@ export const baseYAxisValueOptions = (
         },
       },
     },
-    options || {}
+    options || {},
   ) satisfies YAXisComponentOption;
 
 export type SliderDataZoomComponentOptionWithRequiredEnd = {
@@ -152,7 +152,7 @@ export type SliderDataZoomComponentOptionWithRequiredEnd = {
 } & Partial<Omit<SliderDataZoomComponentOption, "end">>;
 
 export const baseSliderDataZoomOptions = (
-  options: SliderDataZoomComponentOptionWithRequiredEnd
+  options: SliderDataZoomComponentOptionWithRequiredEnd,
 ) => {
   const baseOptions = {
     type: "slider",
@@ -213,7 +213,7 @@ export const baseSliderDataZoomOptions = (
 };
 
 export const baseSliderDataZoomAsScrollbarOptions = (
-  options: SliderDataZoomComponentOptionWithRequiredEnd
+  options: SliderDataZoomComponentOptionWithRequiredEnd,
 ): SliderDataZoomComponentOption =>
   merge(
     baseSliderDataZoomOptions({
@@ -223,7 +223,7 @@ export const baseSliderDataZoomAsScrollbarOptions = (
       borderColor: "rgba(255,255,255,0)",
       end: options.end,
     }),
-    options
+    options,
   );
 
 export const baseAxisLabelAsMonthYearOptions =
@@ -263,7 +263,7 @@ export const baseConcentrationIndicatorChartOptions = ({
               <span class="h-3 w-3 rounded-full bg-[#BFEA81]"></span>
               <span class="text-sm">${seriesName}</span>
               <span class="ml-auto font-medium">${Number(
-                paramData.value
+                paramData.value,
               ).toFixed(2)}</span>
             </div>
           </div>

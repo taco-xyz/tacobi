@@ -32,7 +32,7 @@ type SeriesOptionsWithRequiredNameAndData = {
 } & Partial<Omit<LineSeriesOption, "data" | "name">>;
 
 const baseLineSeriesOptions = (
-  options: SeriesOptionsWithRequiredNameAndData
+  options: SeriesOptionsWithRequiredNameAndData,
 ): SeriesOption => ({
   type: "line",
   symbol: "roundRect",
@@ -67,7 +67,7 @@ export type BaseLineChartOptionsParams = {
 };
 
 const baseLineChartOptions = (
-  params: BaseLineChartOptionsParams
+  params: BaseLineChartOptionsParams,
 ): EChartsOption => ({
   tooltip: baseTooltipOptions({
     axisPointer: {
