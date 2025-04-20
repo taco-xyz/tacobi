@@ -108,7 +108,11 @@ export const createTacoBI = <S extends TacoBISpec>({
   };
 };
 
-type DatasetById<S extends TacoBISpec> = {
+/**
+ * Utility type - a mapping of dataset ids to their requests.
+ * @template S - The spec of the TacoBI context.
+ */
+type DatasetRequestById<S extends TacoBISpec> = {
   [K in ExtractDatasetIds<S>]: DatasetRequest<
     Extract<ExtractDatasetMetadata<S>, { id: K }>
   >;
@@ -156,16 +160,15 @@ export const TacoBIProvider = <S extends TacoBISpec>({
   state: TacoBIState<S>;
 }) => {
   // Cached dataset data. On page load, all datasets are fetched and cached.
-  const [datasetsById, setDatasetsById] = useState<DatasetById<S>>(
+  const [datasetsById, setDatasetsById] = useState<DatasetRequestById<S>>(
     () => {
-      const initialState: Partial<DatasetById<S>> = {};
-      state.spec.datasets.forEach((meta) => {
-        initialState[meta.id as ExtractDatasetIds<S>] = {
+      return state.spec.datasets.reduce((acc, meta) => {
+        acc[meta.id as ExtractDatasetIds<S>] = {
           id: meta.id,
-          state: "pending",
-        } as DatasetRequestPending<typeof meta>;
-      });
-      return initialState as DatasetById<S>;
+          state: "pending" as const,
+        };
+        return acc;
+      }, {} as DatasetRequestById<S>);
     }
   );
 
@@ -176,13 +179,6 @@ export const TacoBIProvider = <S extends TacoBISpec>({
   useEffect(() => {
     // For each dataset, start by marking it as pending.
     state.spec.datasets.forEach((meta) => {
-      setDatasetsById((prev) => ({
-        ...prev,
-        [meta.id]: { id: meta.id, state: "pending" } as DatasetRequestPending<
-          typeof meta
-        >,
-      }));
-
       // Fetch the dataset and update the state.
       fetch(`${state.url}${meta.route}`)
         .then((res) => {
