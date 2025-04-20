@@ -20,9 +20,9 @@ export default function Home() {
         <p className="text-sm mt-1 text-gray-700">
           This is a line chart that shows the price of Bitcoin.
         </p>
-        <div className="w-full h-[500px]">
+        <div className="h-[500px] w-full">
           {isLoading ? (
-            <div className="flex items-center size-full bg-black justify-center h-full">
+            <div className="flex size-full h-full items-center justify-center bg-black">
               Loading...
             </div>
           ) : (
