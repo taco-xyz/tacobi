@@ -1,12 +1,12 @@
 // React Imports
-import { FC, useEffect, useMemo, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 // ECharts Imports
 import * as echarts from "echarts";
 
 // TacoBI Imports
 import { useTacoBI } from "@/app/tacobi-config";
-import { ExtractDatasetRowTypeFromDataset } from "@/tacobi/schema";
+import { ExtractDatasetRequestRowType } from "@/tacobi/schema";
 
 interface KPICardProps {
   title: string;
@@ -15,76 +15,84 @@ interface KPICardProps {
 
 const KPICard: FC<KPICardProps> = ({ title }) => {
   // Fetch the dataset using TacoBI
-  const { useDatasets, isLoading } = useTacoBI();
-  const [btcDataset] = useDatasets(["bitcoin-price"]);
+  const { useDatasets } = useTacoBI();
+  const [datasetRequest] = useDatasets(["protocol-stats"]);
+
+  const datasetLoaded = useMemo(() => {
+    return datasetRequest.state === "loaded" ? datasetRequest : null;
+  }, [datasetRequest]);
 
   // Ref for the chart container
   const chartContainerRef = useRef<HTMLDivElement>(null);
 
   // State to store the current focused datapoint
   const [currentDatapoint, setCurrentDatapoint] =
-    useState<ExtractDatasetRowTypeFromDataset<typeof btcDataset> | null>(null);
+    useState<ExtractDatasetRequestRowType<typeof datasetRequest> | null>(null);
 
   // Memoized option for the chart
-  const option: echarts.EChartsOption = useMemo(() => {
-    return {
-      animation: false,
-      textStyle: { fontFamily: `"Geist", monospace` },
-      grid: {
-        left: 0,
-        right: 0,
-        top: 0,
-        bottom: 0,
-      },
-      dataset: [btcDataset],
-      xAxis: {
-        type: "time",
-        interval: 0,
-        axisLine: { show: false },
-        axisTick: { show: false },
-        axisLabel: { show: false },
-        axisPointer: {
-          show: true,
-          lineStyle: { color: "oklch(87.2% 0.01 258.338)" },
-          label: { show: false },
-          z: 0,
+  const getOption = useCallback(
+    (dataset: NonNullable<typeof datasetLoaded>) => {
+      return {
+        animation: false,
+        textStyle: { fontFamily: `"Geist", monospace` },
+        grid: {
+          left: 0,
+          right: 0,
+          top: 0,
+          bottom: 0,
         },
-      },
-      yAxis: {
-        type: "value",
-        show: false,
-        max: "dataMax",
-      },
-      series: [
-        {
-          type: "line",
-          encode: { x: "Date", y: "Price" },
-          datasetId: "bitcoin-price",
-          lineStyle: { color: "rgba(59, 130, 246, 1)", width: 1.5 },
-          showSymbol: false,
-          smooth: true,
-          cursor: "pointer",
-          emphasis: { disabled: true },
-          color: ["rgba(59, 130, 246, 1)"],
-          areaStyle: {
-            opacity: 0.8,
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: "rgba(219, 232, 253, 1)" },
-              { offset: 1, color: "rgba(219, 232, 253, 0)" },
-            ]),
+        dataset: [dataset],
+        xAxis: {
+          type: "time",
+          interval: 0,
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { show: false },
+          axisPointer: {
+            show: true,
+            lineStyle: { color: "oklch(87.2% 0.01 258.338)" },
+            label: { show: false },
+            z: 0,
           },
-          silent: true,
         },
-      ],
-    };
-  }, [btcDataset]);
+        yAxis: {
+          type: "value",
+          show: false,
+          max: "dataMax",
+        },
+        series: [
+          {
+            type: "line",
+            encode: { x: "Date", y: "Price" },
+            datasetId: "bitcoin-price",
+            lineStyle: { color: "rgba(59, 130, 246, 1)", width: 1.5 },
+            showSymbol: false,
+            smooth: true,
+            cursor: "pointer",
+            emphasis: { disabled: true },
+            color: ["rgba(59, 130, 246, 1)"],
+            areaStyle: {
+              opacity: 0.8,
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: "rgba(219, 232, 253, 1)" },
+                { offset: 1, color: "rgba(219, 232, 253, 0)" },
+              ]),
+            },
+            silent: true,
+          },
+        ],
+      };
+    },
+    [],
+  );
 
   // Initialize the chart
   useEffect(() => {
-    if (!chartContainerRef.current || isLoading || !btcDataset) return;
+    if (!chartContainerRef.current) return;
+    if (!datasetLoaded) return;
 
     // Set the current datapoint to the last datapoint in the dataset
-    setCurrentDatapoint(btcDataset.source[btcDataset.source.length - 1]);
+    setCurrentDatapoint(datasetLoaded.source[datasetLoaded.source.length - 1]);
 
     // Initialize the chart with the svg renderer
     const chart = echarts.init(chartContainerRef.current, undefined, {
@@ -92,7 +100,7 @@ const KPICard: FC<KPICardProps> = ({ title }) => {
     });
 
     // Set the option for the chart
-    chart.setOption(option);
+    chart.setOption(getOption(datasetLoaded));
 
     // Event listener that updates the current datapoint when the axis pointer changes (on hover)
     chart.on("updateAxisPointer", (params) => {
@@ -100,17 +108,21 @@ const KPICard: FC<KPICardProps> = ({ title }) => {
 
       // If the dataIndex is not present, set the current datapoint to the last datapoint in the dataset
       if (!dataIndex) {
-        setCurrentDatapoint(btcDataset.source[btcDataset.source.length - 1]);
+        setCurrentDatapoint(
+          datasetLoaded.source[datasetLoaded.source.length - 1],
+        );
         return;
       }
 
       // Update the current datapoint to the datapoint at the dataIndex
-      setCurrentDatapoint(btcDataset.source[dataIndex]);
+      setCurrentDatapoint(datasetLoaded.source[dataIndex]);
     });
 
     // Event listener that resets the current datapoint when the cursor leaves the chart
     chart.on("globalout", () => {
-      setCurrentDatapoint(btcDataset.source[btcDataset.source.length - 1]);
+      setCurrentDatapoint(
+        datasetLoaded.source[datasetLoaded.source.length - 1],
+      );
     });
 
     // Get the chart div and svg wrappers
@@ -126,7 +138,7 @@ const KPICard: FC<KPICardProps> = ({ title }) => {
     return () => {
       chart.dispose();
     };
-  }, [btcDataset, option, isLoading]);
+  }, [datasetLoaded, getOption]);
 
   return (
     <div className="flex w-full flex-col gap-y-6 rounded-lg p-6 ring ring-gray-200">
@@ -137,19 +149,25 @@ const KPICard: FC<KPICardProps> = ({ title }) => {
 
         <div className="flex h-[28px] w-full flex-row items-center justify-between">
           <p className="font-geist-mono text-lg font-semibold text-gray-700">
-            {currentDatapoint?.Price.toLocaleString("en-US", {
-              notation: "compact",
-              compactDisplay: "short",
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
+            {currentDatapoint?.market_supply_assets_USD.toLocaleString(
+              "en-US",
+              {
+                notation: "compact",
+                compactDisplay: "short",
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              },
+            )}
           </p>
           <p className="text-sm text-gray-500">
-            {currentDatapoint?.Date
-              ? new Date(currentDatapoint.Date).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })
+            {currentDatapoint?.block_time_day
+              ? new Date(currentDatapoint.block_time_day).toLocaleDateString(
+                  "en-US",
+                  {
+                    month: "short",
+                    day: "numeric",
+                  },
+                )
               : ""}
           </p>
         </div>
@@ -160,17 +178,22 @@ const KPICard: FC<KPICardProps> = ({ title }) => {
 
         <div className="flex h-[16px] w-full flex-row items-center justify-between">
           <p className="text-xs text-gray-500">
-            {btcDataset.source?.[0]?.Date
-              ? new Date(btcDataset.source[0].Date).toLocaleDateString(
-                  "en-US",
-                  { month: "short", day: "numeric" },
-                )
+            {datasetLoaded.source?.[0]?.block_time_day
+              ? new Date(
+                  datasetLoaded.source[0].block_time_day,
+                ).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })
               : ""}
           </p>
           <p className="text-xs text-gray-500">
-            {btcDataset.source?.[btcDataset.source.length - 1]?.Date
+            {datasetLoaded.source?.[datasetLoaded.source.length - 1]
+              ?.block_time_day
               ? new Date(
-                  btcDataset.source[btcDataset.source.length - 1].Date,
+                  datasetLoaded.source[
+                    datasetLoaded.source.length - 1
+                  ].block_time_day,
                 ).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
