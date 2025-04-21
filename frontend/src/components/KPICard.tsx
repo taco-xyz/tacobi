@@ -1,7 +1,7 @@
 "use client";
 
 // React Imports
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, FC } from "react";
 
 // Echarts Imports
 import * as echarts from "echarts";
@@ -26,14 +26,14 @@ export interface KPICardProps {
 }
 
 /**
- * KPICard Component
+ * @function KPICard
  *
  * @description This component is used to display a KPI card with a small chart.
  * @param {string} title - The title of the KPI card.
  * @param {Array<[string, number]>} data - The data to display in the KPI card.
  * @returns {JSX.Element} The KPICard component.
  */
-export const KPICard = ({ title, data }: KPICardProps) => {
+export const KPICard: FC<KPICardProps> = ({ title, data }) => {
   // Memoize initOpts to prevent unnecessary re-renders
   const initOpts: useEchartsProps = useMemo(
     () => ({
