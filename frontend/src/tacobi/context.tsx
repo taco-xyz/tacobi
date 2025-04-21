@@ -1,25 +1,18 @@
 import {
   DatasetRequest,
-  DatasetRequestPending,
   ExtractDatasetIds,
   ExtractDatasetMetadata,
   ExtractDatasetRowType,
   TacoBISpec,
 } from "@/tacobi/schema";
-import { TacoChartProps } from "@/tacobi/chart";
 import {
-  FC,
   ReactNode,
   createContext,
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useState,
 } from "react";
-import { EChart } from "@kbox-labs/react-echarts";
-import { DatasetOption } from "echarts/types/dist/shared";
-import { Resolve } from "./utils/resolve";
 
 /**
  * A type that orders the dataset requests by the ids.
