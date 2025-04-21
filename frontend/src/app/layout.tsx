@@ -22,11 +22,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <TacoBIProvider state={state}>{children}</TacoBIProvider>
-      </body>
+      <TacoBIProvider state={state}>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          <div className="size-full flex flex-col items-center bg-white font-[family-name:var(--font-geist-sans)]">
+            <div className="max-w-[var(--breakpoint-2xl)]">
+              {children}
+            </div>
+          </div>
+        </body>
+      </TacoBIProvider>
     </html>
   );
 }

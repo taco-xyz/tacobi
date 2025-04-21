@@ -66,6 +66,42 @@ async def protocol_stats() -> DataFrame[ProtocolStatsModel]:
     return protocol_stats_df.pipe(DataFrame[ProtocolStatsModel])
 
 
+# Markets Current Stats
+
+
+class MarketsCurrentModel(pa.DataFrameModel):
+    market_address: str
+    supply_assets_USD: float
+    borrow_assets_USD: float
+    liquidity_assets_USD: float
+    utilization: float
+    morpho_tokens: float
+    morpho_tokens_cumulative: float
+    borrow_asset_symbol: str
+    supply_asset_symbol: str
+
+
+markets_current_df = pd.read_csv(
+    "morpho-datasets/markets_current.csv",
+)
+
+# Replace empty strings and NaN values with "None" for asset symbols
+markets_current_df["borrow_asset_symbol"] = markets_current_df[
+    "borrow_asset_symbol"
+].fillna("None")
+markets_current_df["supply_asset_symbol"] = markets_current_df[
+    "supply_asset_symbol"
+].fillna("None")
+
+
+@tacobi.dataset("/markets-current", DatasetTypeEnum.TABULAR)
+async def markets_current() -> DataFrame[MarketsCurrentModel]:
+    """
+    A dataset that contains current market statistics from markets_current.csv.
+    """
+    return markets_current_df.pipe(DataFrame[MarketsCurrentModel])
+
+
 if __name__ == "__main__":
     print(tacobi.get_schema().model_dump_json())
     tacobi.run()
