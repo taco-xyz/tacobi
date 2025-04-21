@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { TacoBIProvider } from "@/tacobi";
 import { state } from "./tacobi-config";
+import clsx from "clsx";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

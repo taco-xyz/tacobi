@@ -19,8 +19,8 @@ export interface ColumnSchema {
 export type SelectColumnValue<T extends ColumnValue> = T extends "string"
   ? string
   : T extends "number"
-  ? number
-  : never;
+    ? number
+    : never;
 
 /**
  * Dataset schema, containing a list of headers defining the name and type of
@@ -105,10 +105,11 @@ export type DatasetRequest<M extends DatasetMetadata> =
  * @returns The row type of the dataset request.
  */
 export type ExtractDatasetRequestRowType<
-  R extends DatasetRequest<DatasetMetadata>
-> = R extends DatasetRequestLoaded<infer M>
-  ? ExtractDatasetSchemaRowType<M["dataset_schema"]>
-  : never;
+  R extends DatasetRequest<DatasetMetadata>,
+> =
+  R extends DatasetRequestLoaded<infer M>
+    ? Resolve<ExtractDatasetSchemaRowType<M["dataset_schema"]>>
+    : never;
 
 /**
  * The schema of the TacoBI, containing a list of datasets. It is *required*
@@ -170,7 +171,7 @@ export type ExtractDatasetSchemas<S extends TacoBISpec> =
  */
 export type ExtractDatasetColumnNames<
   S extends TacoBISpec,
-  ID extends ExtractDatasetIds<S>
+  ID extends ExtractDatasetIds<S>,
 > = Extract<
   S["datasets"][number],
   { id: ID }
