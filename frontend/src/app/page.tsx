@@ -3,11 +3,10 @@
 import { useTacoBI } from "./tacobi-config";
 import { EChart } from "@kbox-labs/react-echarts";
 import * as echarts from "echarts";
-import { useMemo } from "react";
 
 export default function Home() {
   const { useDatasets, isLoading } = useTacoBI();
-  const datasets = useDatasets(["bitcoin-price"]);
+  const datasets = useDatasets(["market-stats", "protocol-stats"]);
 
   if (!isLoading) {
     console.log(datasets);
