@@ -1,40 +1,69 @@
+import os
+
 import pandas as pd
 import pandera as pa
 from pandera.typing import DataFrame
 from tacobi import DatasetTypeEnum, Tacobi
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(current_dir)
+
+
 tacobi = Tacobi()
 
 
-class BeverageModel(pa.DataFrameModel):
-    Beverage: str
-    Price: float
+# Market Stats
 
 
-@tacobi.dataset("/dataset-1", DatasetTypeEnum.TABULAR)
-async def dataset_1() -> DataFrame[BeverageModel]:
+class MarketStatsModel(pa.DataFrameModel):
+    market_key: str
+    block_time_day: str
+    market_supply_assets_USD: float
+    market_borrow_assets_USD: float
+    MORPHO_tokens_supply: float
+    MORPHO_tokens_borrow: float
+    MORPHO_dollars_supply: float
+    MORPHO_dollars_borrow: float
+
+
+market_stats_df = pd.read_csv(
+    "morpho-datasets/market_stats.csv",
+)
+
+
+@tacobi.dataset("/market-stats", DatasetTypeEnum.TABULAR)
+async def market_stats() -> DataFrame[MarketStatsModel]:
     """
-    A dataset that contains information about beverages and their prices.
+    A dataset that contains market statistics from market_stats.csv.
     """
-
-    return pd.DataFrame(
-        {"Beverage": ["Coffee", "Tea", "Soda"], "Price": [3.5, 2.5, 2.0]}
-    ).pipe(DataFrame[BeverageModel])
+    return market_stats_df.pipe(DataFrame[MarketStatsModel])
 
 
-class CocktailModel(pa.DataFrameModel):
-    Cocktail: str
+# Protocol Stats
 
 
-@tacobi.dataset("/dataset-2", DatasetTypeEnum.TABULAR)
-async def dataset_2() -> DataFrame[CocktailModel]:
+class ProtocolStatsModel(pa.DataFrameModel):
+    block_time_day: str
+    market_supply_assets_USD: float
+    market_borrow_assets_USD: float
+    MORPHO_tokens_supply: float
+    MORPHO_tokens_borrow: float
+    MORPHO_dollars_supply: float
+    MORPHO_dollars_borrow: float
+    vaults_revenue: float
+
+
+protocol_stats_df = pd.read_csv(
+    "morpho-datasets/protocol_stats.csv",
+)
+
+
+@tacobi.dataset("/protocol-stats", DatasetTypeEnum.TABULAR)
+async def protocol_stats() -> DataFrame[ProtocolStatsModel]:
     """
-    A dataset that contains information about cocktails.
+    A dataset that contains protocol statistics from protocol_stats.csv.
     """
-
-    return pd.DataFrame({"Cocktail": ["Margarita", "Mojito", "Old Fashioned"]}).pipe(
-        DataFrame[CocktailModel]
-    )
+    return protocol_stats_df.pipe(DataFrame[ProtocolStatsModel])
 
 
 if __name__ == "__main__":

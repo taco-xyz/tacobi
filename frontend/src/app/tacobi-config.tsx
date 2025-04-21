@@ -4,20 +4,35 @@ import type { TacoBISpec } from "@/tacobi";
 const spec = {
   datasets: [
     {
-      id: "dataset-1",
-      route: "/dataset-1",
+      id: "market-stats",
+      route: "/market-stats",
       dataset_schema: {
         columns: [
-          { name: "Beverage", valueType: "string" },
-          { name: "Price", valueType: "number" },
+          { name: "market_key", valueType: "string" },
+          { name: "block_time_day", valueType: "string" },
+          { name: "market_supply_assets_USD", valueType: "number" },
+          { name: "market_borrow_assets_USD", valueType: "number" },
+          { name: "MORPHO_tokens_supply", valueType: "number" },
+          { name: "MORPHO_tokens_borrow", valueType: "number" },
+          { name: "MORPHO_dollars_supply", valueType: "number" },
+          { name: "MORPHO_dollars_borrow", valueType: "number" },
         ],
       },
     },
     {
-      id: "dataset-2",
-      route: "/dataset-2",
+      id: "protocol-stats",
+      route: "/protocol-stats",
       dataset_schema: {
-        columns: [{ name: "Cocktail", valueType: "string" }],
+        columns: [
+          { name: "block_time_day", valueType: "string" },
+          { name: "market_supply_assets_USD", valueType: "number" },
+          { name: "market_borrow_assets_USD", valueType: "number" },
+          { name: "MORPHO_tokens_supply", valueType: "number" },
+          { name: "MORPHO_tokens_borrow", valueType: "number" },
+          { name: "MORPHO_dollars_supply", valueType: "number" },
+          { name: "MORPHO_dollars_borrow", valueType: "number" },
+          { name: "vaults_revenue", valueType: "number" },
+        ],
       },
     },
   ],
