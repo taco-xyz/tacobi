@@ -19,8 +19,8 @@ export interface ColumnSchema {
 export type SelectColumnValue<T extends ColumnValue> = T extends "string"
   ? string
   : T extends "number"
-    ? number
-    : never;
+  ? number
+  : never;
 
 /**
  * Dataset schema, containing a list of headers defining the name and type of
@@ -30,15 +30,6 @@ export type SelectColumnValue<T extends ColumnValue> = T extends "string"
 export interface DatasetSchema {
   columns: ColumnSchema[];
 }
-
-/**
- * Utility type to extract the row type of a dataset.
- * @param S - The dataset schema.
- * @returns The row type of the dataset.
- */
-export type ExtractDatasetRowType<S extends DatasetSchema> = {
-  [C in S["columns"][number] as C["name"]]: SelectColumnValue<C["valueType"]>;
-};
 
 /**
  * Metadata about a dataset, containing an id, route, and schema.
@@ -53,18 +44,60 @@ export interface DatasetMetadata {
 }
 
 /**
- * A dataset with the source data. Directly insertable into an ECharts
- * dataset.
- * @template M - The metadata of the dataset.
- * @property isLoading - Whether the dataset is loading.
- * @property source - The source data of the dataset.
+ * Utility type to extract the row type of a dataset.
+ * @param S - The dataset schema.
+ * @returns The row type of the dataset.
  */
-export interface Dataset<M extends DatasetMetadata> {
+export type ExtractDatasetRowType<S extends DatasetSchema> = {
+  [C in S["columns"][number] as C["name"]]: SelectColumnValue<C["valueType"]>;
+};
+
+/**
+ * A dataset that is pending.
+ * @template M - The metadata of the dataset.
+ * @property id - The id of the dataset.
+ * @property state - The state of the dataset.
+ */
+export interface DatasetRequestPending<M extends DatasetMetadata> {
   id: M["id"];
-  isLoading: boolean;
-  /* An array of mappings of column names to values of the given type. */
-  source: ExtractDatasetRowType<M["dataset_schema"]>[];
+  state: "pending";
 }
+
+/**
+ * A dataset that is in an error state.
+ * @template M - The metadata of the dataset.
+ * @property id - The id of the dataset.
+ * @property state - The state of the dataset.
+ * @property error - The error that occurred.
+ */
+export interface DatasetRequestError<M extends DatasetMetadata> {
+  id: M["id"];
+  state: "error";
+  error: Error;
+}
+
+/**
+ * A dataset that is loaded.
+ * @template M - The metadata of the dataset.
+ * @property id - The id of the dataset.
+ * @property state - The state of the dataset.
+ */
+export interface DatasetRequestLoaded<M extends DatasetMetadata> {
+  id: M["id"];
+  state: "loaded";
+  source: Resolve<ExtractDatasetRowType<M["dataset_schema"]>>[];
+}
+
+/**
+ * A dataset with the source data. See {@link DatasetRequestPending},
+ * {@link DatasetRequestError}, and {@link DatasetRequestLoaded} for more information.
+ *
+ * @abstract You can use tagged unions to manipulate this type.
+ */
+export type DatasetRequest<M extends DatasetMetadata> =
+  | DatasetRequestPending<M>
+  | DatasetRequestError<M>
+  | DatasetRequestLoaded<M>;
 
 /**
  * The schema of the TacoBI, containing a list of datasets. It is *required*
@@ -118,27 +151,6 @@ export type ExtractDatasetSchemas<S extends TacoBISpec> =
   ExtractDatasetMetadata<S>["dataset_schema"];
 
 /**
- * Utility type to extract the row type based on the full spec from
- * using the ID
- */
-export type ExtractDatasetRowTypeFromSpec<
-  S extends TacoBISpec,
-  ID extends ExtractDatasetIds<S>,
-> = Resolve<
-  ExtractDatasetRowType<
-    Extract<S["datasets"][number], { id: ID }>["dataset_schema"]
-  >
->;
-
-export type ExtractDatasetRowTypeFromDataset<
-  D extends Dataset<DatasetMetadata>,
-> = Resolve<
-  ExtractDatasetRowType<
-    D extends Dataset<infer M> ? M["dataset_schema"] : never
-  >
->;
-
-/**
  * Utility type to extract the column names of a dataset.
  * @param S - The TacoBISpec.
  * @param ID - The id of the dataset.
@@ -147,7 +159,7 @@ export type ExtractDatasetRowTypeFromDataset<
  */
 export type ExtractDatasetColumnNames<
   S extends TacoBISpec,
-  ID extends ExtractDatasetIds<S>,
+  ID extends ExtractDatasetIds<S>
 > = Extract<
   S["datasets"][number],
   { id: ID }
