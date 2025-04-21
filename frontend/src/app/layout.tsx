@@ -27,7 +27,7 @@ export default function RootLayout({
         className={clsx(
           geistSans.variable,
           geistMono.variable,
-          "font-geist-sans mx-auto flex min-h-screen w-full max-w-screen-2xl flex-col bg-white px-18 py-20 antialiased ring ring-inset dark:bg-gray-950",
+          "font-geist-sans mx-auto flex min-h-screen w-full max-w-screen-2xl flex-col bg-white px-18 py-20 antialiased",
         )}
       >
         <TacoBIProvider state={state}>{children}</TacoBIProvider>
