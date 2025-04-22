@@ -101,6 +101,7 @@ export const KPICard = ({ title, data }: KPICardProps) => {
             opacity: 0.8,
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
               { offset: 0, color: "rgba(219, 232, 253, 1)" },
+              { offset: 0.5, color: "rgba(219, 232, 253, 0.75)" },
               { offset: 1, color: "rgba(219, 232, 253, 0)" },
             ]),
           },
@@ -146,7 +147,7 @@ export const KPICard = ({ title, data }: KPICardProps) => {
     <div className="flex w-full flex-col gap-y-6 rounded-lg p-6 ring ring-gray-200">
       <div className="flex w-full flex-col items-center gap-y-1">
         {/* Title */}
-        <h1 className="w-full text-start text-sm font-normal text-gray-500">
+        <h1 className="w-full text-start text-xs font-normal text-gray-500">
           {title}
         </h1>
 
@@ -163,15 +164,15 @@ export const KPICard = ({ title, data }: KPICardProps) => {
 
       <div className="flex w-full flex-col items-center gap-y-2.5">
         {/* Chart */}
-        <div ref={ref} className="h-16 w-full overflow-visible" />
+        <div ref={ref} className="h-5 w-full overflow-visible" />
 
         {/* Date range */}
-        <div className="flex h-[16px] w-full flex-row items-center justify-between">
+        {/* <div className="flex h-[16px] w-full flex-row items-center justify-between">
           <p className="text-xs text-gray-500">{formatDate(data[0][0])}</p>
           <p className="text-xs text-gray-500">
             {formatDate(data[data.length - 1][0])}
           </p>
-        </div>
+        </div> */}
       </div>
     </div>
   );

@@ -51,7 +51,7 @@ const spec = {
           { name: "supply_asset_symbol", valueType: "string" },
         ],
       },
-    }
+    },
   ],
 } as const satisfies TacoBISpec;
 

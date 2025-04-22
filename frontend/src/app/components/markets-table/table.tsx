@@ -1,7 +1,7 @@
 "use client";
 
 import { ExtractDatasetRequestRowType } from "@/tacobi";
-import { useTacoBI } from "../../tacobi-config";
+import { useTacoBI } from "@/app/tacobi-config";
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -9,30 +9,63 @@ import {
   useReactTable,
   type SortingState,
   flexRender,
+  Column,
 } from "@tanstack/react-table";
 import { FC, useMemo, useState } from "react";
 import clsx from "clsx";
-import { currencyFormatter } from "@/lib/formatters";
 import {
   ChevronsUpDownIcon,
   ChevronDown,
   ChevronUp,
   ChevronsRight,
 } from "lucide-react";
+import { currencyFormatter } from "@/lib/formatters";
 import {
   ProgressCircle,
   ProgressCircleProps,
 } from "./components/ProgressCircle";
 
-export default function Home() {
+/**
+ * A header that can be used to sort the table.
+ * @param column The column to sort.
+ * @param title The title of the column.
+ * @returns A button that can be used to sort the table.
+ */
+const SortableHeader = <TData, TValue>({
+  column,
+  title,
+}: {
+  column: Column<TData, TValue>;
+  title: string;
+}) => (
+  <button
+    onClick={() => column.toggleSorting()}
+    className="flex items-center gap-1 rounded-md px-2 py-1.5 transition-all duration-200 hover:cursor-pointer hover:bg-gray-100"
+  >
+    {title}
+    {column.getIsSorted() === "desc" ? (
+      <ChevronDown className="size-4 text-gray-900" />
+    ) : column.getIsSorted() === "asc" ? (
+      <ChevronUp className="size-4 text-gray-900" />
+    ) : (
+      <ChevronsUpDownIcon className="size-4 text-gray-500" />
+    )}
+  </button>
+);
+
+/**
+ * Displays current markets on Morpho.
+ * @returns A table of current markets on Morpho.
+ */
+const MarketsTable: FC = () => {
   const { useDatasets } = useTacoBI();
   const [marketStats] = useDatasets(["markets-current"]);
-
-  const [sorting, setSorting] = useState<SortingState>([]);
 
   // Extract the row type of the market stats dataset request so that we can
   // use it for the the Tanstack Table generics.
   type MarketStatsRowType = ExtractDatasetRequestRowType<typeof marketStats>;
+
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   const defaultColumns = useMemo(() => {
     const columnHelper = createColumnHelper<MarketStatsRowType>();
@@ -73,19 +106,7 @@ export default function Home() {
       columnHelper.accessor("supply_assets_USD", {
         id: "supply",
         header: ({ column }) => (
-          <button
-            onClick={() => column.toggleSorting()}
-            className="flex items-center gap-1 rounded-md px-2 py-1.5 transition-all duration-200 hover:cursor-pointer hover:bg-gray-100"
-          >
-            Supply
-            {column.getIsSorted() === "desc" ? (
-              <ChevronDown className="size-4 text-gray-900" />
-            ) : column.getIsSorted() === "asc" ? (
-              <ChevronUp className="size-4 text-gray-900" />
-            ) : (
-              <ChevronsUpDownIcon className="size-4 text-gray-500" />
-            )}
-          </button>
+          <SortableHeader column={column} title="Supply" />
         ),
         cell: ({ getValue, row }) => {
           const dollars = getValue();
@@ -109,19 +130,7 @@ export default function Home() {
       columnHelper.accessor("borrow_assets_USD", {
         id: "borrow",
         header: ({ column }) => (
-          <button
-            onClick={() => column.toggleSorting()}
-            className="flex items-center gap-1 rounded-md px-2 py-1.5 transition-all duration-200 hover:cursor-pointer hover:bg-gray-100"
-          >
-            Borrow
-            {column.getIsSorted() === "desc" ? (
-              <ChevronDown className="size-4 text-gray-900" />
-            ) : column.getIsSorted() === "asc" ? (
-              <ChevronUp className="size-4 text-gray-900" />
-            ) : (
-              <ChevronsUpDownIcon className="size-4 text-gray-500" />
-            )}
-          </button>
+          <SortableHeader column={column} title="Borrow" />
         ),
         cell: ({ getValue, row }) => {
           const dollars = getValue();
@@ -145,19 +154,7 @@ export default function Home() {
       columnHelper.accessor("utilization", {
         id: "utilization",
         header: ({ column }) => (
-          <button
-            onClick={() => column.toggleSorting()}
-            className="flex items-center gap-1 rounded-md px-2 py-1.5 transition-all duration-200 hover:cursor-pointer hover:bg-gray-100"
-          >
-            Utilization
-            {column.getIsSorted() === "desc" ? (
-              <ChevronDown className="size-4 text-gray-900" />
-            ) : column.getIsSorted() === "asc" ? (
-              <ChevronUp className="size-4 text-gray-900" />
-            ) : (
-              <ChevronsUpDownIcon className="size-4 text-gray-500" />
-            )}
-          </button>
+          <SortableHeader column={column} title="Utilization" />
         ),
         cell: ({ getValue }) => {
           const utilization = getValue();
@@ -225,7 +222,7 @@ export default function Home() {
         },
       }),
     ];
-  }, [marketStats]);
+  }, []);
 
   const tableOptions = useMemo(
     () => ({
@@ -244,56 +241,53 @@ export default function Home() {
 
   return (
     <div className="flex w-full flex-col items-start">
-      <span className="mb-3 flex flex-row items-center gap-2">
+      {/* <span className="mb-3 flex flex-row items-center gap-2">
         <div className="my-2 flex flex-col gap-1">
-          <h1 className="text-xl font-semibold text-black">Markets</h1>
+          <h1 className="text-2xl font-semibold text-black">Markets</h1>
           <p className="w-2xl text-sm text-gray-700">
             Existing markets on Morpho
           </p>
         </div>
-      </span>
+      </span> */}
       {marketStats.state === "loaded" && (
-        <>
-          <table className="w-full border-collapse text-gray-700">
-            <thead className="text-xs text-gray-900">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className="border-b border-gray-300 px-3 py-2 text-left"
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody className="text-sm text-gray-500">
-              {table.getRowModel().rows.map((row) => (
-                <tr key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className={clsx("border-b border-gray-300 px-3 py-2")}
-                    >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </>
+        <table className="w-full border-collapse text-gray-700">
+          <thead className="text-xs text-gray-900">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th
+                    key={header.id}
+                    className="border-b border-gray-300 px-3 py-2 text-left"
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody className="text-sm text-gray-500">
+            {table.getRowModel().rows.map((row) => (
+              <tr key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <td
+                    key={cell.id}
+                    className={clsx("border-b border-gray-300 px-3 py-2")}
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );
-}
+};
+
+export { MarketsTable };

@@ -8,55 +8,63 @@ import { useTacoBI } from "../tacobi-config";
 
 // Component Imports
 import { KPICard } from "@/components/KPICard";
+import { ProtocolStatsChart } from "@/components/ProtocolStatsChart";
 
 export const KPICardsSection: FC = () => {
   // Fetch the dataset using TacoBI
   const { useDatasets } = useTacoBI();
-  const [datasetRequest] = useDatasets(["protocol-stats"]);
+  const [protocolStatsRequest, marketsCurrentRequest] = useDatasets([
+    "protocol-stats",
+    "markets-current",
+  ]);
 
   // Split the data into multiple datasets
   const processedDatasets = useMemo(() => {
-    if (datasetRequest.state !== "loaded") return null;
+    if (
+      protocolStatsRequest.state !== "loaded" ||
+      marketsCurrentRequest.state !== "loaded"
+    )
+      return null;
 
-    const sortedDatasets = datasetRequest.source.sort(
+    const sortedProtocolStats = protocolStatsRequest.source.sort(
       (a, b) =>
         new Date(a.block_time_day).getTime() -
         new Date(b.block_time_day).getTime(),
     );
 
     const datasets = {
-      marketSupply: sortedDatasets.map((d): [string, number] => [
+      marketSupply: sortedProtocolStats.map((d): [string, number] => [
         d.block_time_day,
         d.market_supply_assets_USD,
       ]),
-      marketBorrow: sortedDatasets.map((d): [string, number] => [
+      marketBorrow: sortedProtocolStats.map((d): [string, number] => [
         d.block_time_day,
         d.market_borrow_assets_USD,
       ]),
-      morphoTokensSupply: sortedDatasets.map((d): [string, number] => [
+      morphoTokensSupply: sortedProtocolStats.map((d): [string, number] => [
         d.block_time_day,
         d.MORPHO_tokens_supply,
       ]),
-      morphoTokensBorrow: sortedDatasets.map((d): [string, number] => [
+      morphoTokensBorrow: sortedProtocolStats.map((d): [string, number] => [
         d.block_time_day,
         d.MORPHO_tokens_borrow,
       ]),
-      morphoDollarsSupply: sortedDatasets.map((d): [string, number] => [
+      morphoDollarsSupply: sortedProtocolStats.map((d): [string, number] => [
         d.block_time_day,
         d.MORPHO_dollars_supply,
       ]),
-      morphoDollarsBorrow: sortedDatasets.map((d): [string, number] => [
+      morphoDollarsBorrow: sortedProtocolStats.map((d): [string, number] => [
         d.block_time_day,
         d.MORPHO_dollars_borrow,
       ]),
-      vaultsRevenue: sortedDatasets.map((d): [string, number] => [
+      vaultsRevenue: sortedProtocolStats.map((d): [string, number] => [
         d.block_time_day,
         d.vaults_revenue,
       ]),
     };
 
     return datasets;
-  }, [datasetRequest]);
+  }, [protocolStatsRequest, marketsCurrentRequest]);
 
   // If the data is still loading, don't render anything
   if (!processedDatasets) {
@@ -64,26 +72,17 @@ export const KPICardsSection: FC = () => {
   }
 
   return (
-    <div className="grid w-full grid-cols-4 gap-6">
-      <KPICard title="Total Revenue" data={processedDatasets.vaultsRevenue} />
-      <KPICard title="Market Supply" data={processedDatasets.marketSupply} />
-      <KPICard title="Market Borrow" data={processedDatasets.marketBorrow} />
-      <KPICard
-        title="Morpho Tokens Supply"
-        data={processedDatasets.morphoTokensSupply}
-      />
-      <KPICard
-        title="Morpho Tokens Borrow"
-        data={processedDatasets.morphoTokensBorrow}
-      />
-      <KPICard
-        title="Morpho Dollars Supply"
-        data={processedDatasets.morphoDollarsSupply}
-      />
-      <KPICard
-        title="Morpho Dollars Borrow"
-        data={processedDatasets.morphoDollarsBorrow}
-      />
-    </div>
+    <>
+      <div className="grid w-full grid-cols-4 gap-6">
+        <KPICard
+          title="Curator Revenue"
+          data={processedDatasets.vaultsRevenue}
+        />
+        <KPICard title="Rewards" data={processedDatasets.morphoTokensSupply} />
+      </div>
+      <div className="h-96 w-full">
+        <ProtocolStatsChart />
+      </div>
+    </>
   );
 };
