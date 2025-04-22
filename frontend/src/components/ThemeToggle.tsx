@@ -4,11 +4,11 @@
 import { useCallback, FC } from "react";
 
 // Lucide Icons
-import { Sun, MoonStar } from "lucide-react";
+import { MoonStarIcon, SunIcon } from "lucide-react";
 
 /**
- * Theme toggle component that switches between light and dark modes
- * Uses localStorage to persist theme preference
+ * @constant ThemeToggle
+ * @description A component that toggles the theme between light and dark modes.
  */
 export const ThemeToggle: FC = () => {
   const toggleTheme = useCallback(() => {
@@ -23,16 +23,14 @@ export const ThemeToggle: FC = () => {
 
   return (
     <button
+      className="flex flex-shrink-0 cursor-pointer flex-row items-center justify-center rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-blue-600 dark:hover:bg-gray-900 dark:hover:text-blue-400"
+      style={{
+        transition: "background-color 0.2s ease-in-out, color 0.2s ease-in-out",
+      }}
       onClick={toggleTheme}
-      className="group custom-tab-outline-offset-2 relative flex flex-shrink-0 cursor-pointer flex-row items-center gap-x-4 rounded-full p-2 ring-1 ring-gray-200 transition-all duration-150 ease-in-out ring-inset hover:ring-gray-200/90 dark:ring-gray-800 hover:dark:ring-gray-700"
     >
-      <div className="flex-shrink-0 text-gray-500 transition-all duration-150 ease-in-out group-hover:text-gray-400 dark:text-white/70 dark:group-hover:text-white/90">
-        <Sun className="size-5" />
-      </div>
-      <div className="flex-shrink-0 text-gray-500 transition-all duration-150 ease-in-out group-hover:text-gray-400 dark:text-white/70 dark:group-hover:text-white/90">
-        <MoonStar className="size-5" />
-      </div>
-      <div className="absolute left-1 -z-1 size-7 rounded-full bg-gray-200 transition-all duration-150 ease-in-out group-hover:bg-gray-200/90 dark:translate-x-9 dark:bg-gray-800 dark:group-hover:bg-gray-700" />
+      <SunIcon strokeWidth={1.5} className="size-7 dark:hidden" />
+      <MoonStarIcon strokeWidth={1.5} className="hidden size-7 dark:block" />
     </button>
   );
 };

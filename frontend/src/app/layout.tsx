@@ -22,6 +22,7 @@ import { SidebarProvider } from "@/context/SidebarContext";
 // Component Imports
 import { ExpandableSidebar } from "@/components/ExpandableSidebar";
 import { RetractableLayout } from "@/components/RetractableLayout";
+import { MobileTopBar } from "@/components/MobileTopBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,16 +55,18 @@ const RootLayout: FC<PropsWithChildren> = ({ children }) => {
         className={clsx(
           geistSans.variable,
           geistMono.variable,
-          "font-geist-sans flex min-h-screen w-full flex-row overflow-x-hidden bg-white dark:bg-gray-950 antialiased",
+          "font-geist-sans flex min-h-screen w-full flex-row overflow-x-hidden bg-white antialiased dark:bg-gray-950",
         )}
         style={{
-          transition:
-            "background-color 0.2s ease-in-out",
+          transition: "background-color 0.2s ease-in-out",
         }}
       >
         <SidebarProvider>
           {/* Sidebar */}
           <ExpandableSidebar />
+
+          {/* Top Bar */}
+          <MobileTopBar />
 
           {/* Main Content */}
           <RetractableLayout>
