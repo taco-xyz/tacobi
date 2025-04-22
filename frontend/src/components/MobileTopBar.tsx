@@ -22,12 +22,16 @@ export const MobileTopBar: FC = () => {
   const { isOpen, setIsOpen } = useSidebar();
 
   return (
-    <div className="fixed top-0 right-0 left-0 z-50 px-6 lg:hidden">
+    <div
+      className="fixed top-0 right-0 left-0 z-50 bg-white px-6 lg:hidden dark:bg-gray-950"
+      style={{
+        transition: "background-color 0.2s ease-in-out",
+      }}
+    >
       <div
-        className="flex w-full flex-row items-center justify-between border-b border-gray-200 bg-white py-4 dark:border-gray-800 dark:bg-gray-950"
+        className="flex w-full flex-row items-center justify-between border-b border-gray-200 py-4 dark:border-gray-800"
         style={{
-          transition:
-            "background-color 0.2s ease-in-out, border-color 0.2s ease-in-out",
+          transition: "border-color 0.2s ease-in-out",
         }}
       >
         {/* Logo */}
