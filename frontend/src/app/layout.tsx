@@ -20,7 +20,7 @@ import clsx from "clsx";
 import { SidebarProvider } from "@/context/SidebarContext";
 
 // Component Imports
-import { ExpandableSidebar } from "@/components/ExpandableSidebar";
+import { ExpandableSidebar } from "@/components/expandable-sidebar.tsx/ExpandableSidebar";
 import { RetractableLayout } from "@/components/RetractableLayout";
 import { MobileTopBar } from "@/components/MobileTopBar";
 

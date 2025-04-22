@@ -25,7 +25,8 @@ import { useSidebar } from "@/context/SidebarContext";
 
 // Components Imports
 import { ThemeToggle } from "./ThemeToggle";
-import { Logo } from "./Logo";
+import { Logo } from "../Logo";
+
 interface NavigationItem {
   name: string;
   icon: React.ReactNode;
@@ -89,7 +90,7 @@ export const ExpandableSidebar: FC = () => {
         isOpen
           ? "w-full opacity-100 lg:w-[16rem]"
           : "w-0 opacity-0 lg:w-[6rem]",
-        "fixed top-0 right-0 bottom-0 left-0 z-40 flex h-screen flex-col items-center justify-between overflow-hidden lg:border-r border-gray-200 bg-white lg:opacity-100 dark:border-gray-800 dark:bg-gray-950",
+        "fixed top-0 right-0 bottom-0 left-0 z-40 flex h-screen flex-col items-center justify-between overflow-hidden border-gray-200 bg-white lg:border-r lg:opacity-100 dark:border-gray-800 dark:bg-gray-950",
       )}
       style={{
         transition:
@@ -98,7 +99,7 @@ export const ExpandableSidebar: FC = () => {
     >
       <div className="flex h-full w-full flex-col items-center justify-between px-6 py-4 lg:py-6">
         {/* Logo */}
-        <div className="flex w-full flex-shrink-0 flex-row items-center justify-center border-b border-gray-200 transition-colors duration-200 ease-in-out pb-6 dark:border-gray-800">
+        <div className="flex w-full flex-shrink-0 flex-row items-center justify-center border-b border-gray-200 pb-6 transition-colors duration-200 ease-in-out dark:border-gray-800">
           <Logo />
         </div>
 
@@ -142,7 +143,7 @@ export const ExpandableSidebar: FC = () => {
                   currentNavigationItem?.href === item.href
                     ? "text-gray-900 dark:text-white"
                     : "text-gray-500",
-                  "font-medium whitespace-nowrap opacity-100 group-hover:text-zinc-900 dark:group-hover:text-white",
+                  "font-medium whitespace-nowrap opacity-100 group-hover:text-gray-900 dark:group-hover:text-white",
                 )}
                 style={{
                   transition:
@@ -157,7 +158,7 @@ export const ExpandableSidebar: FC = () => {
 
         {/* Bottom Buttons */}
         <div className="flex w-full flex-col items-start justify-center gap-y-4 lg:pl-[4px]">
-          {/* Theme Toggle Button (visible when sidebar is closed) */}
+          {/* Theme Toggle Button (visible when sidebar is closed and mobile) */}
           <div
             className={clsx(
               isOpen ? "lg:opacity-0" : "lg:opacity-100",
@@ -170,6 +171,7 @@ export const ExpandableSidebar: FC = () => {
             <ThemeToggle />
           </div>
 
+          {/*Desktop Buttons*/}
           <div className="hidden w-full flex-row items-start justify-start gap-x-4 lg:flex">
             {/* Open/Close Sidebar Button */}
             <button
@@ -211,6 +213,7 @@ export const ExpandableSidebar: FC = () => {
             transition: "color 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
           }}
         >
+          {/*Open State*/}
           <span
             className={clsx(
               isOpen ? "opacity-100" : "opacity-0",
@@ -222,6 +225,8 @@ export const ExpandableSidebar: FC = () => {
           >
             Powered by <span className="font-bold text-gray-500">deltaY</span>
           </span>
+
+          {/*Closed State*/}
           <span
             className={clsx(
               isOpen ? "opacity-0" : "opacity-100",

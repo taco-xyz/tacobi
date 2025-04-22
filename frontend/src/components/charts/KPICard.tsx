@@ -13,6 +13,9 @@ import { useEcharts, useEchartsProps } from "@/hooks/useEcharts";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { formatDate } from "@/utils/formatDate";
 
+// Context Imports
+import { useTheme } from "@/context/ThemeContext";
+
 /**
  * KPICard Props
  *
@@ -34,6 +37,9 @@ export interface KPICardProps {
  * @returns {JSX.Element} The KPICard component.
  */
 export const KPICard: FC<KPICardProps> = ({ title, data }) => {
+  // Extract the theme from the theme context
+  const theme = useTheme();
+
   // Memoize initOpts to prevent unnecessary re-renders
   const initOpts: useEchartsProps = useMemo(
     () => ({
@@ -57,8 +63,8 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
     // Return early if the chart hasn't been initialized yet
     if (!chart) return;
 
-    // Set the chart styling
-    chart.setOption({
+    // Define the options
+    const option: echarts.EChartsOption = {
       animation: false,
       textStyle: { fontFamily: `"Geist", monospace` },
       grid: {
@@ -75,7 +81,7 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
         axisLabel: { show: false },
         axisPointer: {
           show: true,
-          lineStyle: { color: "#9ca3af" },
+          lineStyle: { color: theme === "light" ? "#9ca3af" : "#374151" },
           label: { show: false },
           z: 0,
           snap: true,
@@ -91,23 +97,39 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
           type: "line",
           data,
           clip: false,
-          lineStyle: { color: "rgba(59, 130, 246, 1)", width: 1.5 },
+          lineStyle: {
+            color: "#3b82f6",
+            width: 1.5,
+          },
+          itemStyle: {
+            color: theme === "light" ? "#ffffff" : "#030712",
+            borderColor: "#3b82f6",
+            borderWidth: 2,
+          },
           showSymbol: false,
+          symbol: "circle",
+          symbolSize: 6,
           smooth: true,
           cursor: "pointer",
           emphasis: { disabled: true },
-          color: ["rgba(59, 130, 246, 1)"],
           areaStyle: {
             opacity: 0.8,
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: "rgba(219, 232, 253, 1)" },
-              { offset: 1, color: "rgba(219, 232, 253, 0)" },
+              theme === "light"
+                ? { offset: 0, color: "rgba(96, 165, 250, 1)" }
+                : { offset: 0, color: "rgba(30, 64, 175, 1)" },
+              theme === "light"
+                ? { offset: 1, color: "rgba(147, 197, 253, 0)" }
+                : { offset: 1, color: "rgba(30, 58, 138, 0)" },
             ]),
           },
           silent: true,
         },
       ],
-    });
+    };
+
+    // Set the chart styling
+    chart.setOption(option);
 
     // Event listener that updates the current datapoint when the cursor moves over the chart
     chart.on("updateAxisPointer", (params) => {
@@ -137,13 +159,18 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
     // Override overflow so edge point markers are visible
     wrapper.style.overflow = "visible";
     svg.style.overflow = "visible";
-  }, [chart, data]);
+  }, [chart, data, theme]);
 
   // If the data is empty, don't render anything
   if (data.length === 0) return null;
 
   return (
-    <div className="flex w-full flex-col gap-y-6 rounded-lg p-6 ring ring-gray-200">
+    <div
+      className="flex w-full flex-col gap-y-6 rounded-lg p-6 ring ring-gray-200 dark:ring-gray-800"
+      style={{
+        transition: "box-shadow 0.2s ease-in-out",
+      }}
+    >
       <div className="flex w-full flex-col items-center gap-y-1">
         {/* Title */}
         <h1 className="w-full text-start text-sm font-normal text-gray-500">
@@ -152,7 +179,10 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
 
         {/* Current datapoint */}
         <div className="flex h-[28px] w-full flex-row items-center justify-between">
-          <p className="font-geist-mono text-lg font-semibold text-gray-700">
+          <p
+            className="font-geist-mono text-lg font-semibold text-gray-900 dark:text-gray-300"
+            style={{ transition: "color 0.2s ease-in-out" }}
+          >
             {formatCurrency(focusedDatapoint[1])}
           </p>
           <p className="text-sm text-gray-500">

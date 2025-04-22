@@ -13,6 +13,10 @@ import { useSidebar } from "@/context/SidebarContext";
 // Utils Imports
 import clsx from "clsx";
 
+/**
+ * @function MobileTopBar
+ * @description A component that displays a top bar on mobile devices.
+ */
 export const MobileTopBar: FC = () => {
   // Extract the sidebar context
   const { isOpen, setIsOpen } = useSidebar();
@@ -31,7 +35,7 @@ export const MobileTopBar: FC = () => {
 
         {/* Open/Close Sidebar Button */}
         <button
-          className="relative size-10 cursor-pointer flex items-center justify-center rounded-lg p-1 text-gray-500 hover:bg-gray-100 hover:text-blue-600 dark:hover:bg-gray-900 dark:hover:text-blue-400"
+          className="relative flex size-10 cursor-pointer items-center justify-center rounded-lg p-1 text-gray-500 hover:bg-gray-100 hover:text-blue-600 dark:hover:bg-gray-900 dark:hover:text-blue-400"
           onClick={() => setIsOpen(!isOpen)}
           style={{
             transition:
