@@ -15,7 +15,7 @@ export const Logo: FC = () => {
       alt="logo"
       width={74}
       height={69}
-      className="size-8 lg:size-10 flex-shrink-0"
+      className="size-8 flex-shrink-0 lg:size-10"
     />
   );
 };

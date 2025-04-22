@@ -64,7 +64,7 @@ export const KPICardsSection: FC = () => {
   }
 
   return (
-    <div className="grid w-full grid-cols-4 gap-6">
+    <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       <KPICard title="Total Revenue" data={processedDatasets.vaultsRevenue} />
       <KPICard title="Market Supply" data={processedDatasets.marketSupply} />
       <KPICard title="Market Borrow" data={processedDatasets.marketBorrow} />

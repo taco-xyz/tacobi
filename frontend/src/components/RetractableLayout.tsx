@@ -27,7 +27,7 @@ export const RetractableLayout: FC<PropsWithChildren> = ({ children }) => {
         transition: "margin-left 0.2s ease-in-out",
       }}
     >
-      <div className="mt-[57px] flex h-full w-full max-w-screen-2xl flex-col items-center lg:mt-0">
+      <div className="mt-20 flex h-full w-full max-w-screen-2xl flex-col items-center lg:mt-0">
         {children}
       </div>
     </div>
