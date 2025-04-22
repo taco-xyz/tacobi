@@ -57,7 +57,8 @@ protocol_stats_df = pd.read_csv(
     "morpho-datasets/protocol_stats.csv",
 )
 
-protocol_stats_df = protocol_stats_df.sort_values(by='block_time_day')
+protocol_stats_df = protocol_stats_df.sort_values(by="block_time_day")
+
 
 @tacobi.dataset("/protocol-stats", DatasetTypeEnum.TABULAR)
 async def protocol_stats() -> DataFrame[ProtocolStatsModel]:
