@@ -1,10 +1,28 @@
 "use client";
 
+// React Imports
+import { FC, PropsWithChildren } from "react";
+
+// Global CSS Imports
+import "@/app/globals.css";
+
+// Font Imports
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { TacoBIProvider } from "@/tacobi";
+
+// TacoBI Imports
+import { TacoBIProvider } from "@/tacobi/context";
 import { state } from "./tacobi-config";
+
+// Utils Imports
 import clsx from "clsx";
+
+// Context Imports
+import { SidebarProvider } from "@/context/SidebarContext";
+
+// Component Imports
+import { ExpandableSidebar } from "@/components/expandable-sidebar.tsx/ExpandableSidebar";
+import { RetractableLayout } from "@/components/RetractableLayout";
+import { MobileTopBar } from "@/components/MobileTopBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,24 +34,48 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+const RootLayout: FC<PropsWithChildren> = ({ children }) => {
   return (
-    <html lang="en">
-      <TacoBIProvider state={state}>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          <div className="size-full flex flex-col items-center bg-white font-[family-name:var(--font-geist-sans)]">
-            <div className="max-w-[var(--breakpoint-2xl)]">
-              {children}
-            </div>
-          </div>
-        </body>
-      </TacoBIProvider>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              document.documentElement.classList.toggle(
+                "dark",
+                localStorage.theme === "dark" ||
+                (!("theme" in localStorage) &&
+                  window.matchMedia("(prefers-color-scheme: dark)").matches)
+              );
+            `,
+          }}
+        />
+      </head>
+      <body
+        className={clsx(
+          geistSans.variable,
+          geistMono.variable,
+          "font-geist-sans flex min-h-screen w-full flex-row overflow-x-hidden bg-white antialiased dark:bg-gray-950",
+        )}
+        style={{
+          transition: "background-color 0.2s ease-in-out",
+        }}
+      >
+        <SidebarProvider>
+          {/* Sidebar */}
+          <ExpandableSidebar />
+
+          {/* Top Bar */}
+          <MobileTopBar />
+
+          {/* Main Content */}
+          <RetractableLayout>
+            <TacoBIProvider state={state}>{children}</TacoBIProvider>
+          </RetractableLayout>
+        </SidebarProvider>
+      </body>
     </html>
   );
-}
+};
+
+export default RootLayout;
