@@ -13,7 +13,7 @@ import { formatDate } from "@/utils/formatDate";
 import {
   ChartColorVariant,
   getChartColorVariant,
-} from "@/lib/chartColorVariants";
+} from "@/components/charts/lib/chartColorVariants";
 import { useTacoBI } from "@/app/tacobi-config";
 import { currencyFormatter } from "@/lib/formatters";
 

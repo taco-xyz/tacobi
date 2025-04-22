@@ -7,7 +7,7 @@ import { FC, useMemo } from "react";
 import { useTacoBI } from "../tacobi-config";
 
 // Component Imports
-import { KPICard } from "@/components/KPICard";
+import { KPICard } from "@/components/charts/KPICard";
 import { ProtocolStatsChart } from "@/components/ProtocolStatsChart";
 
 export const KPICardsSection: FC = () => {
