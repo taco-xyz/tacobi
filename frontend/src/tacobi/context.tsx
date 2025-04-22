@@ -21,13 +21,13 @@ import {
  */
 export type OrderedDatasetRequests<
   S extends TacoBISpec,
-  T extends ExtractDatasetIds<S>[]
+  T extends ExtractDatasetIds<S>[],
 > = [
   ...{
     [K in keyof T]: DatasetRequest<
       Extract<S["datasets"][number], { id: T[K] }>
     >;
-  }
+  },
 ];
 
 /**
@@ -35,7 +35,7 @@ export type OrderedDatasetRequests<
  */
 export interface TacoBIContext<S extends TacoBISpec> {
   useDatasets: <T extends ExtractDatasetIds<S>[]>(
-    ids: [...T]
+    ids: [...T],
   ) => OrderedDatasetRequests<S, T>;
 }
 
@@ -162,7 +162,7 @@ export const TacoBIProvider = <S extends TacoBISpec>({
         };
         return acc;
       }, {} as DatasetRequestById<S>);
-    }
+    },
   );
 
   /**
@@ -178,17 +178,19 @@ export const TacoBIProvider = <S extends TacoBISpec>({
           if (!res.ok) throw new Error(res.statusText);
           return res.json();
         })
-        .then((rows: ExtractDatasetRowType<(typeof meta)["dataset_schema"]>[]) => {
-          // If the dataset loads successfully, mark it as loaded.
-          setDatasetsById((prev) => ({
-            ...prev,
-            [meta.id]: {
-              id: meta.id,
-              state: "loaded",
-              source: rows,
-            },
-          }));
-        })
+        .then(
+          (rows: ExtractDatasetRowType<(typeof meta)["dataset_schema"]>[]) => {
+            // If the dataset loads successfully, mark it as loaded.
+            setDatasetsById((prev) => ({
+              ...prev,
+              [meta.id]: {
+                id: meta.id,
+                state: "loaded",
+                source: rows,
+              },
+            }));
+          },
+        )
         .catch((error) => {
           // If the dataset fails to load, mark it as an error.
           setDatasetsById((prev) => ({
@@ -220,7 +222,7 @@ export const TacoBIProvider = <S extends TacoBISpec>({
       }
       return datasets as OrderedDatasetRequests<S, T>;
     },
-    [datasetsById]
+    [datasetsById],
   );
 
   const contextValue: TacoBIContext<S> = {
