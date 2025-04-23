@@ -11,10 +11,10 @@ import Link from "next/link";
 import {
   ChevronsLeftIcon,
   ScanSearchIcon,
-  VaultIcon,
   WaypointsIcon,
-  StoreIcon,
-  HandCoinsIcon,
+  Landmark,
+  Coins,
+  Globe,
 } from "lucide-react";
 
 // Utils Imports
@@ -33,35 +33,127 @@ interface NavigationItem {
   href: string;
 }
 
-/**
- * @constant navigationItems
- * @description An array of navigation items.
- */
-const navigationItems: NavigationItem[] = [
+interface NavigationGroup {
+  name: string;
+  items: NavigationItem[];
+}
+
+interface NavigationGroupComponentProps {
+  group: NavigationGroup;
+  isOpen: boolean;
+  pathname: string;
+}
+
+const NavigationGroupComponent: FC<NavigationGroupComponentProps> = ({
+  group,
+  isOpen,
+  pathname,
+}) => {
+  const currentNavigationItem = useMemo(
+    () => group.items.find((item) => pathname.includes(item.href)),
+    [pathname, group.items],
+  );
+
+  return (
+    <div className="flex w-full flex-col items-start justify-center gap-y-1">
+      <h1
+        className={clsx(
+          "text-xs font-medium text-nowrap text-gray-500 capitalize transition-opacity duration-200 ease-in-out",
+          isOpen ? "opacity-100" : "opacity-0",
+        )}
+      >
+        {group.name}
+      </h1>
+      <div className="flex h-full w-full flex-col items-center gap-y-2 py-2">
+        {group.items.map((item) => (
+          <Link
+            key={item.name}
+            href={item.href}
+            target="_blank"
+            className={clsx(
+              currentNavigationItem?.href === item.href &&
+                "bg-gray-100 dark:bg-gray-900",
+              "group mr-auto flex w-full flex-shrink-0 flex-row items-center justify-start gap-x-3 rounded-lg px-2 py-2 text-base leading-7 hover:bg-gray-100 dark:hover:bg-gray-900",
+            )}
+            style={{
+              transition: "background-color 0.2s ease-in-out",
+            }}
+          >
+            {/* Icon */}
+            <div
+              className={clsx(
+                currentNavigationItem?.href === item.href
+                  ? "text-blue-600 dark:text-blue-400"
+                  : isOpen
+                    ? "text-gray-500 lg:text-gray-400 dark:lg:text-gray-600"
+                    : "text-gray-500",
+                "ml-1.5 group-hover:text-blue-600 dark:group-hover:text-blue-400",
+              )}
+              style={{
+                transition: "color 0.2s ease-in-out",
+              }}
+            >
+              {item.icon}
+            </div>
+
+            {/* Name */}
+            <div
+              className={clsx(
+                isOpen ? "w-full lg:opacity-100" : "w-0 lg:opacity-0",
+                currentNavigationItem?.href === item.href
+                  ? "text-blue-600 dark:text-blue-400"
+                  : "text-gray-900 dark:text-white",
+                "text-sm font-medium whitespace-nowrap opacity-100",
+              )}
+              style={{
+                transition:
+                  "opacity 0.2s ease-in-out, color 0.2s ease-in-out, width 0.2s ease-in-out",
+              }}
+            >
+              {item.name}
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const navigationGroups: NavigationGroup[] = [
   {
-    name: "Global",
-    icon: <ScanSearchIcon className="size-7" strokeWidth={1.5} />,
-    href: "/",
+    name: "PROTOCOL",
+    items: [
+      {
+        name: "Global",
+        icon: <Globe className="size-5" strokeWidth={1.5} />,
+        href: "/",
+      },
+      {
+        name: "Network Effects",
+        icon: <WaypointsIcon className="size-5" strokeWidth={1.5} />,
+        href: "#",
+      },
+    ],
   },
   {
-    name: "Curators",
-    icon: <HandCoinsIcon className="size-7" strokeWidth={1.5} />,
-    href: "#",
-  },
-  {
-    name: "Vaults",
-    icon: <VaultIcon className="size-7" strokeWidth={1.5} />,
-    href: "#",
-  },
-  {
-    name: "Markets",
-    icon: <StoreIcon className="size-7" strokeWidth={1.5} />,
-    href: "#",
-  },
-  {
-    name: "Network Effects",
-    icon: <WaypointsIcon className="size-7" strokeWidth={1.5} />,
-    href: "#",
+    name: "ECOSYSTEM",
+    items: [
+      {
+        name: "Curators",
+        icon: <ScanSearchIcon className="size-5" strokeWidth={1.5} />,
+        href: "#",
+      },
+      {
+        name: "Vaults",
+        icon: <Landmark className="size-5" strokeWidth={1.5} />,
+        href: "#",
+      },
+      {
+        name: "Markets",
+        icon: <Coins className="size-5" strokeWidth={1.5} />,
+        href: "#",
+      },
+    ],
   },
 ];
 
@@ -77,12 +169,6 @@ export const ExpandableSidebar: FC = () => {
 
   // Get the current pathname
   const pathname = usePathname();
-
-  // Get the current navigation item
-  const currentNavigationItem = useMemo(
-    () => navigationItems.find((item) => pathname.includes(item.href)),
-    [pathname],
-  );
 
   return (
     <div
@@ -104,55 +190,14 @@ export const ExpandableSidebar: FC = () => {
         </div>
 
         {/* Navigation Items */}
-        <div className="flex h-full w-full flex-col gap-y-2 py-2">
-          {navigationItems.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              target="_blank"
-              className={clsx(
-                currentNavigationItem?.href === item.href &&
-                  "bg-gray-100 dark:bg-gray-900",
-                "group flex flex-shrink-0 flex-row items-center justify-start gap-x-3 rounded-lg px-2.5 py-2 text-base leading-7 hover:bg-gray-100 dark:hover:bg-gray-900",
-              )}
-              style={{
-                transition: "background-color 0.2s ease-in-out",
-              }}
-            >
-              {/* Icon */}
-              <div
-                className={clsx(
-                  currentNavigationItem?.href === item.href
-                    ? "text-blue-600 dark:text-blue-400"
-                    : isOpen
-                      ? "text-gray-500 lg:text-gray-400 dark:lg:text-gray-600"
-                      : "text-gray-500",
-                  "group-hover:text-blue-600 dark:group-hover:text-blue-400",
-                )}
-                style={{
-                  transition: " color 0.2s ease-in-out",
-                }}
-              >
-                {item.icon}
-              </div>
-
-              {/* Name */}
-              <div
-                className={clsx(
-                  isOpen ? "lg:opacity-100" : "lg:opacity-0",
-                  currentNavigationItem?.href === item.href
-                    ? "text-gray-900 dark:text-white"
-                    : "text-gray-500",
-                  "font-medium whitespace-nowrap opacity-100 group-hover:text-gray-900 dark:group-hover:text-white",
-                )}
-                style={{
-                  transition:
-                    "opacity 0.2s ease-in-out, color 0.2s ease-in-out",
-                }}
-              >
-                {item.name}
-              </div>
-            </Link>
+        <div className="mt-4 mb-auto flex w-full flex-col items-start justify-center gap-y-1">
+          {navigationGroups.map((group) => (
+            <NavigationGroupComponent
+              key={group.name}
+              group={group}
+              isOpen={isOpen}
+              pathname={pathname}
+            />
           ))}
         </div>
 
