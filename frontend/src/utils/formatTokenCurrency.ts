@@ -16,9 +16,6 @@ export function formatTokenCurrency({
   decimals,
   symbol,
 }: FormatTokenCurrencyProps): string {
-  console.log("value", value);
-  console.log("decimals", decimals);
-  console.log("symbol", symbol);
   return (
     value
       // Display the correct number of decimals

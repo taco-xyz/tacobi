@@ -135,7 +135,7 @@ const MarketsTable: FC = () => {
               <span className="font-mono text-xs text-gray-500">
                 {formatTokenCurrency({
                   value: tokens,
-                  decimals: 18,
+                  decimals: 3,
                   symbol: assetSymbol,
                 })}
               </span>
@@ -163,7 +163,7 @@ const MarketsTable: FC = () => {
               <span className="font-mono text-xs text-gray-500">
                 {formatTokenCurrency({
                   value: tokens,
-                  decimals: 18,
+                  decimals: 3,
                   symbol: assetSymbol,
                 })}
               </span>
@@ -234,7 +234,7 @@ const MarketsTable: FC = () => {
               <span className="font-mono text-sm text-gray-900">
                 {formatTokenCurrency({
                   value: tokens,
-                  decimals: 18,
+                  decimals: 3,
                   symbol: "",
                 })}
                 Today
@@ -242,7 +242,7 @@ const MarketsTable: FC = () => {
               <span className="font-mono text-xs text-gray-500">
                 {formatTokenCurrency({
                   value: row.original.morpho_tokens_cumulative,
-                  decimals: 18,
+                  decimals: 3,
                   symbol: "",
                 })}
                 Total
