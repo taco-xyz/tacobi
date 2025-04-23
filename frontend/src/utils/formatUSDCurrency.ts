@@ -3,7 +3,7 @@
  * @param value - The number to format
  * @returns The formatted currency string
  */
-export function formatCurrency(value: number): string {
+export function formatUSDCurrency(value: number): string {
   return value.toLocaleString("en-US", {
     style: "currency",
     notation: "compact",
