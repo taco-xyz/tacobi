@@ -10,7 +10,7 @@ import * as echarts from "echarts";
 import { useEcharts, useEchartsProps } from "@/hooks/useEcharts";
 
 // Utils Imports
-import { formatCurrency } from "@/utils/formatCurrency";
+import { formatUSDCurrency } from "@/utils/formatUSDCurrency";
 import { formatDate } from "@/utils/formatDate";
 
 // Context Imports
@@ -183,10 +183,10 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
             className="font-geist-mono text-lg font-semibold text-gray-900 dark:text-gray-300"
             style={{ transition: "color 0.2s ease-in-out" }}
           >
-            {formatCurrency(focusedDatapoint[1])}
+            {formatUSDCurrency(focusedDatapoint[1])}
           </p>
           <p className="text-sm text-gray-500">
-            {formatDate(focusedDatapoint[0])}
+            {formatDate({ timestamp: focusedDatapoint[0] })}
           </p>
         </div>
       </div>
@@ -197,9 +197,11 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
 
         {/* Date range */}
         <div className="flex h-[16px] w-full flex-row items-center justify-between">
-          <p className="text-xs text-gray-500">{formatDate(data[0][0])}</p>
           <p className="text-xs text-gray-500">
-            {formatDate(data[data.length - 1][0])}
+            {formatDate({ timestamp: data[0][0] })}
+          </p>
+          <p className="text-xs text-gray-500">
+            {formatDate({ timestamp: data[data.length - 1][0] })}
           </p>
         </div>
       </div>

@@ -20,7 +20,8 @@ import {
 
 // Utils Imports
 import clsx from "clsx";
-import { formatCurrency } from "@/utils/formatCurrency";
+import { formatUSDCurrency } from "@/utils/formatUSDCurrency";
+import { formatTokenCurrency } from "@/utils/formatTokenCurrency";
 
 // Icons Imports
 import {
@@ -129,10 +130,14 @@ const MarketsTable: FC = () => {
           return (
             <div className="flex flex-col gap-0.5 pl-1.5">
               <span className="text-sm text-gray-900">
-                {formatCurrency(dollars)}
+                {formatUSDCurrency(dollars)}
               </span>
               <span className="font-mono text-xs text-gray-500">
-                {tokens.toFixed(2)} {assetSymbol}
+                {formatTokenCurrency({
+                  value: tokens,
+                  decimals: 18,
+                  symbol: assetSymbol,
+                })}
               </span>
             </div>
           );
@@ -153,10 +158,14 @@ const MarketsTable: FC = () => {
           return (
             <div className="flex flex-col gap-0.5 pl-1.5">
               <span className="text-sm text-gray-900">
-                {formatCurrency(dollars)}
+                {formatUSDCurrency(dollars)}
               </span>
               <span className="font-mono text-xs text-gray-500">
-                {tokens.toFixed(2)} {assetSymbol}
+                {formatTokenCurrency({
+                  value: tokens,
+                  decimals: 18,
+                  symbol: assetSymbol,
+                })}
               </span>
             </div>
           );
@@ -223,10 +232,20 @@ const MarketsTable: FC = () => {
           return (
             <div className="flex flex-col gap-0.5 pl-1.5">
               <span className="font-mono text-sm text-gray-900">
-                {tokens.toFixed(2)} Today
+                {formatTokenCurrency({
+                  value: tokens,
+                  decimals: 18,
+                  symbol: "",
+                })}
+                Today
               </span>
               <span className="font-mono text-xs text-gray-500">
-                {row.original.morpho_tokens_cumulative.toFixed(2)} Total
+                {formatTokenCurrency({
+                  value: row.original.morpho_tokens_cumulative,
+                  decimals: 18,
+                  symbol: "",
+                })}
+                Total
               </span>
             </div>
           );
@@ -250,53 +269,47 @@ const MarketsTable: FC = () => {
 
   const table = useReactTable(tableOptions);
 
+  if (marketStats.state !== "loaded") {
+    return null;
+  }
+
   return (
     <div className="flex w-full flex-col items-start">
-      {/* <span className="mb-3 flex flex-row items-center gap-2">
-        <div className="my-2 flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold text-black">Markets</h1>
-          <p className="w-2xl text-sm text-gray-700">
-            Existing markets on Morpho
-          </p>
-        </div>
-      </span> */}
-      {marketStats.state === "loaded" && (
-        <table className="w-full border-collapse text-gray-700">
-          <thead className="text-xs text-gray-900">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="border-b border-gray-300 px-3 py-2 text-left"
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody className="text-sm text-gray-500">
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <td
-                    key={cell.id}
-                    className={clsx("border-b border-gray-300 px-3 py-2")}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <table className="w-full border-collapse text-gray-700">
+        <thead className="text-xs text-gray-900">
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <th
+                  key={header.id}
+                  className="border-b border-gray-300 px-3 py-2 text-left"
+                >
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+        <tbody className="text-sm text-gray-500">
+          {table.getRowModel().rows.map((row) => (
+            <tr key={row.id}>
+              {row.getVisibleCells().map((cell) => (
+                <td
+                  key={cell.id}
+                  className={clsx("border-b border-gray-300 px-3 py-2")}
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };

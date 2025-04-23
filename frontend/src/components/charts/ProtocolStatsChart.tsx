@@ -15,7 +15,7 @@ import {
   getChartColorVariant,
 } from "@/components/charts/lib/chartColorVariants";
 import { useTacoBI } from "@/app/tacobi-config";
-import { formatCurrency } from "@/utils/formatCurrency";
+import { formatUSDCurrency } from "@/utils/formatUSDCurrency";
 
 import { createRoot, Root } from "react-dom/client";
 import { ExtractDatasetRequestRowType } from "@/tacobi";
@@ -146,9 +146,7 @@ function useController() {
 
   type ProtocolStat = ExtractDatasetRequestRowType<typeof rawDataset>;
 
-  const tooltipContainerRef = useRef<HTMLDivElement>(
-    document.createElement("div"),
-  );
+  const tooltipContainerRef = useRef<HTMLDivElement>(null);
   const tooltipRootRef = useRef<Root>(null);
 
   // Whether to display rewards (not supply and borrow) using USD or $MORPHO
@@ -176,6 +174,11 @@ function useController() {
 
   // Update the chart options continuously
   useEffect(() => {
+    // Create the tooltip container
+    if (!tooltipContainerRef.current) {
+      tooltipContainerRef.current = document.createElement("div");
+    }
+
     if (!chart || !processedDatasets) return;
 
     // Initialize the tooltip container
@@ -318,15 +321,15 @@ function useController() {
           const data = params[0].data as ProtocolStat;
 
           const year = date.split("-")[0];
-          const formattedDate = `${formatDate(date)}, ${year}`;
+          const formattedDate = `${formatDate({ timestamp: date })}, ${year}`;
 
           // Format the values for display
           const formattedProps: ProtocolStatsTooltipProps = {
             date: formattedDate,
-            borrow: formatCurrency(data.market_borrow_assets_USD),
-            supply: formatCurrency(data.market_supply_assets_USD),
-            supplierRewards: formatCurrency(data.MORPHO_dollars_supply),
-            borrowerRewards: formatCurrency(data.MORPHO_dollars_borrow),
+            borrow: formatUSDCurrency(data.market_borrow_assets_USD),
+            supply: formatUSDCurrency(data.market_supply_assets_USD),
+            supplierRewards: formatUSDCurrency(data.MORPHO_dollars_supply),
+            borrowerRewards: formatUSDCurrency(data.MORPHO_dollars_borrow),
           };
 
           // Render component to the container
@@ -367,41 +370,41 @@ export const ProtocolStatsChart: FC = () => {
   if (datasets === null) return null;
 
   return (
-    <div className="flex h-96 max-w-full flex-col gap-y-6 rounded-lg p-6 ring ring-gray-200 min-w-0">
+    <div className="flex h-96 w-full flex-col gap-y-6 rounded-lg p-6 ring ring-gray-200">
       {/* Title */}
       <h1 className="w-full text-start text-sm font-semibold text-gray-900">
         Protocol Overview
       </h1>
 
       <div className="flex w-full flex-row items-center justify-between">
-        <span className="flex sm:flex-row flex-col gap-x-4 gap-y-4">
+        <span className="flex flex-col gap-x-4 gap-y-4 sm:flex-row">
           <OverviewCard
             title="Borrow"
             colorVariant="blue"
-            displayValue={formatCurrency(
+            displayValue={formatUSDCurrency(
               datasets[datasets.length - 1].market_borrow_assets_USD,
             )}
           />
           <OverviewCard
             title="Supply"
             colorVariant="purple"
-            displayValue={formatCurrency(
+            displayValue={formatUSDCurrency(
               datasets[datasets.length - 1].market_supply_assets_USD,
             )}
           />
         </span>
-        <span className="flex sm:flex-row flex-col gap-x-4 gap-y-4">
+        <span className="flex flex-col gap-x-4 gap-y-4 sm:flex-row">
           <OverviewCard
             title="Supplier Rewards"
             colorVariant="orange"
-            displayValue={formatCurrency(
+            displayValue={formatUSDCurrency(
               datasets[datasets.length - 1].MORPHO_dollars_supply,
             )}
           />
           <OverviewCard
             title="Borrower Rewards"
             colorVariant="red"
-            displayValue={formatCurrency(
+            displayValue={formatUSDCurrency(
               datasets[datasets.length - 1].MORPHO_dollars_borrow,
             )}
           />
@@ -415,10 +418,12 @@ export const ProtocolStatsChart: FC = () => {
         {/* Date range */}
         <div className="flex h-[16px] w-full flex-row items-center justify-between">
           <p className="text-xs text-gray-500">
-            {formatDate(datasets[0].block_time_day)}
+            {formatDate({ timestamp: datasets[0].block_time_day })}
           </p>
           <p className="text-xs text-gray-500">
-            {formatDate(datasets[datasets.length - 1].block_time_day)}
+            {formatDate({
+              timestamp: datasets[datasets.length - 1].block_time_day,
+            })}
           </p>
         </div>
       </div>
