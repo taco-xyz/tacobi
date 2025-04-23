@@ -1,9 +1,13 @@
-// Tremor ProgressCircle [v0.0.3]
-
+// React Imports
 import React from "react";
+
+// Tailwind Variant Imports
 import { tv, VariantProps } from "tailwind-variants";
+
+// Utils Imports
 import clsx from "clsx";
 
+// Tailwind styling variants
 const progressCircleVariants = tv({
   slots: {
     background: "",
@@ -62,7 +66,7 @@ const ProgressCircle = React.forwardRef<SVGSVGElement, ProgressCircleProps>(
       showAnimation = true,
       variant,
       className,
-      children,
+      children,   
       backgroundClassName,
       foregroundClassName,
       foregroundOpacity,

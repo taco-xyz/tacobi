@@ -8,7 +8,7 @@ import { useTacoBI } from "../tacobi-config";
 
 // Component Imports
 import { KPICard } from "@/components/charts/KPICard";
-import { ProtocolStatsChart } from "@/components/ProtocolStatsChart";
+import { ProtocolStatsChart } from "@/components/charts/ProtocolStatsChart";
 
 export const KPICardsSection: FC = () => {
   // Fetch the dataset using TacoBI
@@ -72,17 +72,16 @@ export const KPICardsSection: FC = () => {
   }
 
   return (
-    <>
-      <div className="grid w-full grid-cols-4 gap-6">
+    <div className="flex w-full flex-col gap-y-10">
+      <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <KPICard
           title="Curator Revenue"
           data={processedDatasets.vaultsRevenue}
         />
         <KPICard title="Rewards" data={processedDatasets.morphoTokensSupply} />
       </div>
-      <div className="h-96 w-full">
-        <ProtocolStatsChart />
-      </div>
-    </>
+
+      <ProtocolStatsChart />
+    </div>
   );
 };

@@ -173,7 +173,7 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
     >
       <div className="flex w-full flex-col items-center gap-y-1">
         {/* Title */}
-        <h1 className="w-full text-start text-xs font-normal text-gray-500">
+        <h1 className="w-full text-start text-sm font-normal text-gray-500">
           {title}
         </h1>
 
@@ -193,15 +193,15 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
 
       <div className="flex w-full flex-col items-center gap-y-2.5">
         {/* Chart */}
-        <div ref={ref} className="h-5 w-full overflow-visible" />
+        <div ref={ref} className="h-8 w-full overflow-visible" />
 
         {/* Date range */}
-        {/* <div className="flex h-[16px] w-full flex-row items-center justify-between">
+        <div className="flex h-[16px] w-full flex-row items-center justify-between">
           <p className="text-xs text-gray-500">{formatDate(data[0][0])}</p>
           <p className="text-xs text-gray-500">
             {formatDate(data[data.length - 1][0])}
           </p>
-        </div> */}
+        </div>
       </div>
     </div>
   );

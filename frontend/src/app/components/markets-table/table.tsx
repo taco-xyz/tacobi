@@ -1,7 +1,13 @@
 "use client";
 
+// React Imports
+import { FC, useMemo, useState } from "react";
+
+// TacoBI Imports
 import { ExtractDatasetRequestRowType } from "@/tacobi";
 import { useTacoBI } from "@/app/tacobi-config";
+
+// Tanstack Imports
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -11,15 +17,20 @@ import {
   flexRender,
   Column,
 } from "@tanstack/react-table";
-import { FC, useMemo, useState } from "react";
+
+// Utils Imports
 import clsx from "clsx";
+import { formatCurrency } from "@/utils/formatCurrency";
+
+// Icons Imports
 import {
   ChevronsUpDownIcon,
   ChevronDown,
   ChevronUp,
   ChevronsRight,
 } from "lucide-react";
-import { currencyFormatter } from "@/lib/formatters";
+
+// Component Imports
 import {
   ProgressCircle,
   ProgressCircleProps,
@@ -118,7 +129,7 @@ const MarketsTable: FC = () => {
           return (
             <div className="flex flex-col gap-0.5 pl-1.5">
               <span className="text-sm text-gray-900">
-                {currencyFormatter.format(dollars)}
+                {formatCurrency(dollars)}
               </span>
               <span className="font-mono text-xs text-gray-500">
                 {tokens.toFixed(2)} {assetSymbol}
@@ -142,7 +153,7 @@ const MarketsTable: FC = () => {
           return (
             <div className="flex flex-col gap-0.5 pl-1.5">
               <span className="text-sm text-gray-900">
-                {currencyFormatter.format(dollars)}
+                {formatCurrency(dollars)}
               </span>
               <span className="font-mono text-xs text-gray-500">
                 {tokens.toFixed(2)} {assetSymbol}

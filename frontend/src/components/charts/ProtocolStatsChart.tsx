@@ -15,7 +15,7 @@ import {
   getChartColorVariant,
 } from "@/components/charts/lib/chartColorVariants";
 import { useTacoBI } from "@/app/tacobi-config";
-import { currencyFormatter } from "@/lib/formatters";
+import { formatCurrency } from "@/utils/formatCurrency";
 
 import { createRoot, Root } from "react-dom/client";
 import { ExtractDatasetRequestRowType } from "@/tacobi";
@@ -287,7 +287,6 @@ function useController() {
           type: "value",
           name: "Borrow & Supply",
           show: true,
-          max: "dataMax",
           position: "left",
         },
         {
@@ -324,14 +323,10 @@ function useController() {
           // Format the values for display
           const formattedProps: ProtocolStatsTooltipProps = {
             date: formattedDate,
-            borrow: currencyFormatter.format(data.market_borrow_assets_USD),
-            supply: currencyFormatter.format(data.market_supply_assets_USD),
-            supplierRewards: currencyFormatter.format(
-              data.MORPHO_dollars_supply,
-            ),
-            borrowerRewards: currencyFormatter.format(
-              data.MORPHO_dollars_borrow,
-            ),
+            borrow: formatCurrency(data.market_borrow_assets_USD),
+            supply: formatCurrency(data.market_supply_assets_USD),
+            supplierRewards: formatCurrency(data.MORPHO_dollars_supply),
+            borrowerRewards: formatCurrency(data.MORPHO_dollars_borrow),
           };
 
           // Render component to the container
@@ -372,43 +367,41 @@ export const ProtocolStatsChart: FC = () => {
   if (datasets === null) return null;
 
   return (
-    <div className="flex h-full w-full flex-col gap-y-6 rounded-lg p-6 ring ring-gray-200">
-      <div className="flex w-full flex-col items-center gap-y-1">
-        {/* Title */}
-        <h1 className="w-full text-start text-sm font-semibold text-gray-900">
-          Protocol Overview
-        </h1>
-      </div>
+    <div className="flex h-96 max-w-full flex-col gap-y-6 rounded-lg p-6 ring ring-gray-200 min-w-0">
+      {/* Title */}
+      <h1 className="w-full text-start text-sm font-semibold text-gray-900">
+        Protocol Overview
+      </h1>
 
-      <div className="flex w-full flex-row justify-start gap-x-4">
-        <span className="flex flex-row gap-x-4">
+      <div className="flex w-full flex-row items-center justify-between">
+        <span className="flex sm:flex-row flex-col gap-x-4 gap-y-4">
           <OverviewCard
             title="Borrow"
             colorVariant="blue"
-            displayValue={currencyFormatter.format(
+            displayValue={formatCurrency(
               datasets[datasets.length - 1].market_borrow_assets_USD,
             )}
           />
           <OverviewCard
             title="Supply"
             colorVariant="purple"
-            displayValue={currencyFormatter.format(
+            displayValue={formatCurrency(
               datasets[datasets.length - 1].market_supply_assets_USD,
             )}
           />
         </span>
-        <span className="ml-auto flex flex-row gap-x-4">
+        <span className="flex sm:flex-row flex-col gap-x-4 gap-y-4">
           <OverviewCard
             title="Supplier Rewards"
             colorVariant="orange"
-            displayValue={currencyFormatter.format(
+            displayValue={formatCurrency(
               datasets[datasets.length - 1].MORPHO_dollars_supply,
             )}
           />
           <OverviewCard
             title="Borrower Rewards"
             colorVariant="red"
-            displayValue={currencyFormatter.format(
+            displayValue={formatCurrency(
               datasets[datasets.length - 1].MORPHO_dollars_borrow,
             )}
           />
@@ -417,7 +410,7 @@ export const ProtocolStatsChart: FC = () => {
 
       <div className="flex h-full w-full flex-col items-center gap-y-2.5">
         {/* Chart */}
-        <div ref={chartRef} className="h-full w-full overflow-visible" />
+        <div ref={chartRef} className="h-full w-full" />
 
         {/* Date range */}
         <div className="flex h-[16px] w-full flex-row items-center justify-between">

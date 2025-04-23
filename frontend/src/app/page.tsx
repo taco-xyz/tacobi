@@ -4,7 +4,7 @@ import { MarketsTable } from "@/app/components/markets-table";
 
 export default function Home() {
   return (
-    <div className="mt-5 flex w-full flex-col items-center justify-center gap-5">
+    <div className="flex w-full flex-col items-center gap-y-10">
       <KPICardsSection />
       <MarketsTable />
     </div>

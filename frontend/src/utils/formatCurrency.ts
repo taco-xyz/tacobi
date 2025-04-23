@@ -4,12 +4,12 @@
  * @returns The formatted currency string
  */
 export function formatCurrency(value: number): string {
-  return "$".concat(
-    value.toLocaleString("en-US", {
-      notation: "compact",
-      compactDisplay: "short",
-      maximumFractionDigits: 2,
-      minimumFractionDigits: 2,
-    }),
-  );
+  return value.toLocaleString("en-US", {
+    style: "currency",
+    notation: "compact",
+    compactDisplay: "short",
+    currency: "USD",
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2,
+  });
 }
