@@ -2,7 +2,7 @@ import {
   DatasetRequest,
   ExtractDatasetIds,
   ExtractDatasetMetadata,
-  ExtractDatasetRowType,
+  ExtractDatasetSchemaRowType,
   TacoBISpec,
 } from "@/tacobi/schema";
 import {
@@ -178,19 +178,17 @@ export const TacoBIProvider = <S extends TacoBISpec>({
           if (!res.ok) throw new Error(res.statusText);
           return res.json();
         })
-        .then(
-          (rows: ExtractDatasetRowType<(typeof meta)["dataset_schema"]>[]) => {
-            // If the dataset loads successfully, mark it as loaded.
-            setDatasetsById((prev) => ({
-              ...prev,
-              [meta.id]: {
-                id: meta.id,
-                state: "loaded",
-                source: rows,
-              },
-            }));
-          },
-        )
+        .then((rows: ExtractDatasetSchemaRowType<(typeof meta)["dataset_schema"]>[]) => {
+          // If the dataset loads successfully, mark it as loaded.
+          setDatasetsById((prev) => ({
+            ...prev,
+            [meta.id]: {
+              id: meta.id,
+              state: "loaded",
+              source: rows,
+            },
+          }));
+        })
         .catch((error) => {
           // If the dataset fails to load, mark it as an error.
           setDatasetsById((prev) => ({

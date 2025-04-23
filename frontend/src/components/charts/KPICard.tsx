@@ -193,7 +193,7 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
 
       <div className="flex w-full flex-col items-center gap-y-2.5">
         {/* Chart */}
-        <div ref={ref} className="h-16 w-full overflow-visible" />
+        <div ref={ref} className="h-8 w-full overflow-visible" />
 
         {/* Date range */}
         <div className="flex h-[16px] w-full flex-row items-center justify-between">

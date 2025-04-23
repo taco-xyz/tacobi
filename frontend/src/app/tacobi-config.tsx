@@ -35,6 +35,23 @@ const spec = {
         ],
       },
     },
+    {
+      id: "markets-current",
+      route: "/markets-current",
+      dataset_schema: {
+        columns: [
+          { name: "market_address", valueType: "string" },
+          { name: "supply_assets_USD", valueType: "number" },
+          { name: "borrow_assets_USD", valueType: "number" },
+          { name: "liquidity_assets_USD", valueType: "number" },
+          { name: "utilization", valueType: "number" },
+          { name: "morpho_tokens", valueType: "number" },
+          { name: "morpho_tokens_cumulative", valueType: "number" },
+          { name: "borrow_asset_symbol", valueType: "string" },
+          { name: "supply_asset_symbol", valueType: "string" },
+        ],
+      },
+    },
   ],
 } as const satisfies TacoBISpec;
 
