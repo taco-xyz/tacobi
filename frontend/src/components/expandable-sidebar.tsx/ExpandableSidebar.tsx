@@ -1,11 +1,10 @@
 "use client";
 
 // React Imports
-import { FC, useMemo } from "react";
+import { FC } from "react";
 
 // Next Imports
 import { usePathname } from "next/navigation";
-import Link from "next/link";
 
 // Lucide Icons
 import {
@@ -26,99 +25,9 @@ import { useSidebar } from "@/context/SidebarContext";
 // Components Imports
 import { ThemeToggle } from "./ThemeToggle";
 import { Logo } from "../Logo";
+import { NavigationGroup } from "./NavigationGroup";
 
-interface NavigationItem {
-  name: string;
-  icon: React.ReactNode;
-  href: string;
-}
-
-interface NavigationGroup {
-  name: string;
-  items: NavigationItem[];
-}
-
-interface NavigationGroupComponentProps {
-  group: NavigationGroup;
-  isOpen: boolean;
-  pathname: string;
-}
-
-const NavigationGroupComponent: FC<NavigationGroupComponentProps> = ({
-  group,
-  isOpen,
-  pathname,
-}) => {
-  const currentNavigationItem = useMemo(
-    () => group.items.find((item) => pathname.includes(item.href)),
-    [pathname, group.items],
-  );
-
-  return (
-    <div className="flex w-full flex-col items-start justify-center gap-y-1">
-      <h1
-        className={clsx(
-          "text-xs font-medium text-nowrap text-gray-500 capitalize transition-opacity duration-200 ease-in-out",
-          isOpen ? "opacity-100" : "opacity-0",
-        )}
-      >
-        {group.name}
-      </h1>
-      <div className="flex h-full w-full flex-col items-center gap-y-2 py-2">
-        {group.items.map((item) => (
-          <Link
-            key={item.name}
-            href={item.href}
-            target="_blank"
-            className={clsx(
-              currentNavigationItem?.href === item.href &&
-                "bg-gray-100 dark:bg-gray-900",
-              "group mr-auto flex w-full flex-shrink-0 flex-row items-center justify-start gap-x-3 rounded-lg px-2 py-2 text-base leading-7 hover:bg-gray-100 dark:hover:bg-gray-900",
-            )}
-            style={{
-              transition: "background-color 0.2s ease-in-out",
-            }}
-          >
-            {/* Icon */}
-            <div
-              className={clsx(
-                currentNavigationItem?.href === item.href
-                  ? "text-blue-600 dark:text-blue-400"
-                  : isOpen
-                    ? "text-gray-500 lg:text-gray-400 dark:lg:text-gray-600"
-                    : "text-gray-500",
-                "ml-1.5 group-hover:text-blue-600 dark:group-hover:text-blue-400",
-              )}
-              style={{
-                transition: "color 0.2s ease-in-out",
-              }}
-            >
-              {item.icon}
-            </div>
-
-            {/* Name */}
-            <div
-              className={clsx(
-                isOpen ? "w-full lg:opacity-100" : "w-0 lg:opacity-0",
-                currentNavigationItem?.href === item.href
-                  ? "text-blue-600 dark:text-blue-400"
-                  : "text-gray-900 dark:text-white",
-                "text-sm font-medium whitespace-nowrap opacity-100",
-              )}
-              style={{
-                transition:
-                  "opacity 0.2s ease-in-out, color 0.2s ease-in-out, width 0.2s ease-in-out",
-              }}
-            >
-              {item.name}
-            </div>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-};
-
+// Navigation Groups
 const navigationGroups: NavigationGroup[] = [
   {
     name: "PROTOCOL",
@@ -190,9 +99,17 @@ export const ExpandableSidebar: FC = () => {
         </div>
 
         {/* Navigation Items */}
-        <div className="mt-4 mb-auto flex w-full flex-col items-start justify-center gap-y-1">
+        <div
+          className={clsx(
+            "mt-4 mb-auto flex w-full flex-col items-start justify-center gap-y-1",
+            isOpen ? "lg:mt-4" : "lg:mt-2",
+          )}
+          style={{
+            transition: "margin-top 0.2s ease-in-out",
+          }}
+        >
           {navigationGroups.map((group) => (
-            <NavigationGroupComponent
+            <NavigationGroup
               key={group.name}
               group={group}
               isOpen={isOpen}
@@ -202,7 +119,7 @@ export const ExpandableSidebar: FC = () => {
         </div>
 
         {/* Bottom Buttons */}
-        <div className="flex w-full flex-col items-start justify-center gap-y-4 lg:pl-[4px]">
+        <div className="flex w-full flex-col items-start justify-center gap-y-4">
           {/* Theme Toggle Button (visible when sidebar is closed and mobile) */}
           <div
             className={clsx(
@@ -220,7 +137,7 @@ export const ExpandableSidebar: FC = () => {
           <div className="hidden w-full flex-row items-start justify-start gap-x-4 lg:flex">
             {/* Open/Close Sidebar Button */}
             <button
-              className="cursor-pointer items-center justify-center rounded-lg p-1 text-gray-500 hover:bg-gray-100 hover:text-blue-600 dark:hover:bg-gray-900 dark:hover:text-blue-400"
+              className="cursor-pointer items-center justify-center rounded-lg px-3 py-1.5 text-gray-500 hover:bg-gray-100 hover:text-blue-600 dark:hover:bg-gray-900 dark:hover:text-blue-400"
               onClick={() => setIsOpen(!isOpen)}
               style={{
                 transition:
@@ -230,7 +147,7 @@ export const ExpandableSidebar: FC = () => {
               <ChevronsLeftIcon
                 strokeWidth={1.5}
                 className={clsx(
-                  "size-8 flex-shrink-0",
+                  "size-6 flex-shrink-0",
                   isOpen ? "rotate-0" : "rotate-180",
                 )}
                 style={{
@@ -253,7 +170,7 @@ export const ExpandableSidebar: FC = () => {
 
         {/*Desktop Watermark*/}
         <div
-          className="relative mx-auto mt-4 hidden h-[60px] w-full items-center justify-center overflow-hidden rounded-lg text-center text-sm font-medium whitespace-nowrap text-gray-400 ring-1 ring-gray-200 ring-inset lg:flex dark:text-gray-600 dark:ring-gray-800"
+          className="relative mx-auto mt-4 hidden h-[46px] w-full items-center justify-center overflow-hidden rounded-lg text-center text-sm font-medium whitespace-nowrap text-gray-400 ring-1 ring-gray-200 ring-inset lg:flex dark:text-gray-600 dark:ring-gray-800"
           style={{
             transition: "color 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
           }}

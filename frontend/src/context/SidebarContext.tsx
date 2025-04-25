@@ -28,7 +28,7 @@ const SidebarContext = createContext<SidebarContextType>({
  * @returns {ReactNode} The provider.
  */
 export function SidebarProvider({ children }: { children: ReactNode }) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <SidebarContext.Provider value={{ isOpen, setIsOpen }}>

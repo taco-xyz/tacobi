@@ -23,14 +23,14 @@ export const ThemeToggle: FC = () => {
 
   return (
     <button
-      className="flex flex-shrink-0 cursor-pointer flex-row items-center justify-center rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-blue-600 dark:hover:bg-gray-900 dark:hover:text-blue-400"
+      className="flex flex-shrink-0 cursor-pointer flex-row items-center justify-center rounded-lg px-3.5 py-2 text-gray-500 hover:bg-gray-100 hover:text-blue-600 dark:hover:bg-gray-900 dark:hover:text-blue-400"
       style={{
         transition: "background-color 0.2s ease-in-out, color 0.2s ease-in-out",
       }}
       onClick={toggleTheme}
     >
-      <SunIcon strokeWidth={1.5} className="size-7 dark:hidden" />
-      <MoonStarIcon strokeWidth={1.5} className="hidden size-7 dark:block" />
+      <SunIcon strokeWidth={1.5} className="size-5 dark:hidden" />
+      <MoonStarIcon strokeWidth={1.5} className="hidden size-5 dark:block" />
     </button>
   );
 };
