@@ -62,15 +62,21 @@ export const ProtocolStatsChart: FC = () => {
 
   return (
     <div
-      className="flex w-full flex-col gap-y-6 rounded-lg p-6 ring ring-gray-200 transition-all duration-200 dark:ring-gray-800"
+      className="flex w-full flex-col gap-y-6 rounded-lg p-6 ring ring-gray-200 transition-all duration-200 dark:bg-gray-900/25 dark:ring-gray-900"
       style={{
         transition: "box-shadow 0.2s ease-in-out",
       }}
     >
       {/* Title */}
-      <h1 className="w-full text-start text-sm font-normal text-gray-500">
-        Protocol Overview
-      </h1>
+      <div className="flex w-full flex-col gap-y-2">
+        <h1 className="w-full text-start font-mono text-sm font-normal text-gray-500 uppercase dark:text-gray-400">
+          Rewards & Assets
+        </h1>
+        <p className="text-sm text-gray-500">
+          The total amount of assets borrowed and supplied, as well as the total
+          amount of rewards for suppliers and borrowers.
+        </p>
+      </div>
 
       {/* Overview Header*/}
       <div className="flex w-full flex-row items-center justify-between">
@@ -115,7 +121,7 @@ export const ProtocolStatsChart: FC = () => {
         </div>
 
         <p
-          className="mt-2 w-full text-xs text-gray-400 dark:text-gray-600"
+          className="mt-2 w-full text-xs text-gray-500 dark:text-gray-500"
           style={{
             transition: "color 0.2s ease-in-out",
           }}

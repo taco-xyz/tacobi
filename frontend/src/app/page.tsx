@@ -5,10 +5,10 @@ import { ProtocolStatsChart } from "@/components/charts/protocol-stats-chart/Pro
 
 export default function Home() {
   return (
-    <div className="flex w-full flex-col items-center gap-y-10">
+    <div className="flex w-full flex-col items-center gap-y-6 pb-10">
       <KPICardsSection />
       <ProtocolStatsChart />
-      <MarketsTable />
+      {/* <MarketsTable /> */}
     </div>
   );
 }
