@@ -8,7 +8,6 @@ import { useTacoBI } from "../tacobi-config";
 
 // Component Imports
 import { KPICard } from "@/components/charts/KPICard";
-import { ProtocolStatsChart } from "@/components/charts/ProtocolStatsChart";
 
 export const KPICardsSection: FC = () => {
   // Fetch the dataset using TacoBI
@@ -33,29 +32,9 @@ export const KPICardsSection: FC = () => {
     );
 
     const datasets = {
-      marketSupply: sortedProtocolStats.map((d): [string, number] => [
-        d.block_time_day,
-        d.market_supply_assets_USD,
-      ]),
-      marketBorrow: sortedProtocolStats.map((d): [string, number] => [
-        d.block_time_day,
-        d.market_borrow_assets_USD,
-      ]),
       morphoTokensSupply: sortedProtocolStats.map((d): [string, number] => [
         d.block_time_day,
         d.MORPHO_tokens_supply,
-      ]),
-      morphoTokensBorrow: sortedProtocolStats.map((d): [string, number] => [
-        d.block_time_day,
-        d.MORPHO_tokens_borrow,
-      ]),
-      morphoDollarsSupply: sortedProtocolStats.map((d): [string, number] => [
-        d.block_time_day,
-        d.MORPHO_dollars_supply,
-      ]),
-      morphoDollarsBorrow: sortedProtocolStats.map((d): [string, number] => [
-        d.block_time_day,
-        d.MORPHO_dollars_borrow,
       ]),
       vaultsRevenue: sortedProtocolStats.map((d): [string, number] => [
         d.block_time_day,
@@ -66,22 +45,16 @@ export const KPICardsSection: FC = () => {
     return datasets;
   }, [protocolStatsRequest, marketsCurrentRequest]);
 
-  // If the data is still loading, don't render anything
-  if (!processedDatasets) {
-    return null;
-  }
-
   return (
-    <div className="flex w-full flex-col gap-y-10">
-      <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <KPICard
-          title="Curator Revenue"
-          data={processedDatasets.vaultsRevenue}
-        />
-        <KPICard title="Rewards" data={processedDatasets.morphoTokensSupply} />
-      </div>
-
-      <ProtocolStatsChart />
+    <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <KPICard
+        title="Curator Revenue"
+        data={processedDatasets?.vaultsRevenue ?? null}
+      />
+      <KPICard
+        title="Rewards"
+        data={processedDatasets?.morphoTokensSupply ?? null}
+      />
     </div>
   );
 };

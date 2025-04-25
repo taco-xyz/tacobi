@@ -1,10 +1,14 @@
+// ECharts Imports
 import * as echarts from "echarts";
+
+// Context Imports
+import { Theme } from "@/hooks/useTheme";
 
 /**
  * Properties for the chart color variant.
  * @property areaStyle - The styling for the area of the chart.
  * @property lineStyle - The styling for the line of the chart.
- * @property color - The color of the chart.
+ * @property itemStyle - The styling for the data points of the chart.
  */
 export interface ChartColorVariantProps {
   areaStyle: {
@@ -15,72 +19,120 @@ export interface ChartColorVariantProps {
     color: string;
     width: number;
   };
-  color: string;
+  itemStyle: {
+    color: string;
+    borderColor: string;
+    borderWidth: number;
+  };
 }
+
 /**
  * Available chart color variants.
  */
 export type ChartColorVariant = "blue" | "purple" | "orange" | "red";
 
 /**
- * Mapping of chart color variants to their respective styling properties.
+ * Create a color variant
+ * @param theme - The theme to create the color variant for
+ * @param props - The properties of the color variant
+ * @returns The color variant
  */
-const chartColorVariants: Record<ChartColorVariant, ChartColorVariantProps> = {
+const createColorVariant = (
+  theme: Theme,
+  {
+    areaStart,
+    areaEnd,
+    line,
+  }: {
+    areaStart: string;
+    areaEnd: string;
+    line: string;
+  },
+): ChartColorVariantProps => ({
+  areaStyle: {
+    opacity: 0.8,
+    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+      { offset: 0, color: areaStart },
+      { offset: 1, color: areaEnd },
+    ]),
+  },
+  lineStyle: {
+    color: line,
+    width: 1.5,
+  },
+  itemStyle: {
+    color: theme === "light" ? "#ffffff" : "#030712",
+    borderColor: line,
+    borderWidth: 2,
+  },
+});
+
+/**
+ * The chart color variants
+ */
+const chartColorVariants: Record<
+  ChartColorVariant,
+  Record<Theme, ChartColorVariantProps>
+> = {
   blue: {
-    areaStyle: {
-      opacity: 0.8,
-      color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-        { offset: 0, color: "rgba(219, 232, 253, 1)" },
-        { offset: 0.5, color: "rgba(219, 232, 253, 0.75)" },
-        { offset: 1, color: "rgba(219, 232, 253, 0)" },
-      ]),
-    },
-    lineStyle: { color: "rgba(59, 130, 246, 1)", width: 1.5 },
-    color: "rgba(59, 130, 246, 1)",
+    light: createColorVariant("light", {
+      areaStart: "rgba(96, 165, 250, 1)",
+      areaEnd: "rgba(147, 197, 253, 0)",
+      line: "#3b82f6",
+    }),
+    dark: createColorVariant("dark", {
+      areaStart: "rgba(30, 64, 175, 1)",
+      areaEnd: "rgba(30, 58, 138, 0)",
+      line: "#3b82f6",
+    }),
   },
   purple: {
-    areaStyle: {
-      opacity: 0.8,
-      color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-        { offset: 0, color: "rgba(219, 232, 253, 1)" },
-        { offset: 0.5, color: "rgba(219, 232, 253, 0.75)" },
-        { offset: 1, color: "rgba(219, 232, 253, 0)" },
-      ]),
-    },
-    lineStyle: { color: "rgba(168, 85, 247, 1)", width: 1.5 },
-    color: "rgba(168, 85, 247, 1)",
+    light: createColorVariant("light", {
+      areaStart: "rgba(216, 180, 254, 1)",
+      areaEnd: "rgba(243, 232, 255, 0)",
+      line: "#a855f7",
+    }),
+    dark: createColorVariant("dark", {
+      areaStart: "rgba(126, 34, 206, 1)",
+      areaEnd: "rgba(88, 28, 135, 0)",
+      line: "#a855f7",
+    }),
   },
   orange: {
-    areaStyle: {
-      opacity: 0.8,
-      color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-        { offset: 0, color: "rgba(254, 235, 200, 1)" },
-        { offset: 0.5, color: "rgba(254, 235, 200, 0.75)" },
-        { offset: 1, color: "rgba(254, 235, 200, 0)" },
-      ]),
-    },
-    lineStyle: { color: "rgba(249, 115, 22, 1)", width: 1.5 },
-    color: "rgba(249, 115, 22, 1)",
+    light: createColorVariant("light", {
+      areaStart: "rgba(253, 186, 116, 1)",
+      areaEnd: "rgba(255, 237, 213, 0)",
+      line: "#f97316",
+    }),
+    dark: createColorVariant("dark", {
+      areaStart: "rgba(194, 65, 12, 1)",
+      areaEnd: "rgba(124, 45, 18, 0)",
+      line: "#f97316",
+    }),
   },
   red: {
-    areaStyle: {
-      opacity: 0.8,
-      color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-        { offset: 0, color: "rgba(254, 226, 226, 1)" },
-        { offset: 0.5, color: "rgba(254, 226, 226, 0.85)" },
-        { offset: 1, color: "rgba(254, 226, 226, 0)" },
-      ]),
-    },
-    lineStyle: { color: "rgba(239, 68, 68, 1)", width: 1.5 },
-    color: "rgba(239, 68, 68, 1)",
+    light: createColorVariant("light", {
+      areaStart: "rgba(252, 165, 165, 1)",
+      areaEnd: "rgba(254, 226, 226, 0)",
+      line: "#ef4444",
+    }),
+    dark: createColorVariant("dark", {
+      areaStart: "rgba(185, 28, 28, 1)",
+      areaEnd: "rgba(127, 29, 29, 0)",
+      line: "#ef4444",
+    }),
   },
 };
 
 /**
  * Get the chart color variant
  * @param variant - The variant to get the color for
+ * @param theme - The theme to get the color for
  * @returns The chart color variant
  */
-export function getChartColorVariant(variant: ChartColorVariant) {
-  return chartColorVariants[variant];
+export function getChartColorVariant(
+  variant: ChartColorVariant,
+  theme: Theme,
+): ChartColorVariantProps {
+  return chartColorVariants[variant][theme];
 }

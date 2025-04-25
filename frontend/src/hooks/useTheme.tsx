@@ -4,8 +4,12 @@
 import { useState, useEffect } from "react";
 
 // Theme Type
-type Theme = "dark" | "light";
+export type Theme = "dark" | "light";
 
+/**
+ * Hook to get the current theme.
+ * @returns The current theme.
+ */
 export const useTheme = () => {
   // Get the current theme from the dom class list
   const [theme, setTheme] = useState<Theme>(() => {
