@@ -174,21 +174,21 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
 
   return (
     <div
-      className="flex w-full flex-col gap-y-6 rounded-lg p-6 ring ring-gray-200 dark:ring-gray-800"
+      className="flex w-full flex-col gap-y-6 rounded-lg p-6 ring ring-gray-200 dark:bg-gray-900/25 dark:ring-gray-900"
       style={{
         transition: "box-shadow 0.2s ease-in-out",
       }}
     >
       <div className="flex w-full flex-col items-center gap-y-1">
         {/* Title */}
-        <h1 className="w-full text-start text-sm font-normal text-gray-500">
+        <h1 className="w-full text-start font-mono text-sm text-gray-500 uppercase dark:text-gray-400">
           {title}
         </h1>
 
         {/* Current datapoint */}
         <div className="flex h-[28px] w-full flex-row items-center justify-between">
           <p
-            className="font-geist-mono text-lg font-semibold text-gray-900 dark:text-gray-300"
+            className="text-lg font-semibold text-gray-900 dark:text-gray-300"
             style={{ transition: "color 0.2s ease-in-out" }}
           >
             {formatUSDCurrency(focusedDatapoint[1])}

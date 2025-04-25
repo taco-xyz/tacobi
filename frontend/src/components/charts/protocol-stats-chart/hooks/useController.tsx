@@ -213,7 +213,7 @@ export function useController() {
           },
           splitLine: {
             lineStyle: {
-              color: theme === "light" ? "#e5e7eb" : "#1f2937",
+              color: theme === "light" ? "#e5e7eb" : "#111827",
               width: 1,
             },
           },
