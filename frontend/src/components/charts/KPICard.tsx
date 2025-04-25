@@ -14,7 +14,10 @@ import { formatUSDCurrency } from "@/utils/formatUSDCurrency";
 import { formatDate } from "@/utils/formatDate";
 
 // Context Imports
-import { useTheme } from "@/context/ThemeContext";
+import { useTheme } from "@/hooks/useTheme";
+
+// Chart Color Variants Imports
+import { getChartColorVariant } from "@/components/charts/lib/chartColorVariants";
 
 /**
  * KPICard Props
@@ -25,16 +28,15 @@ import { useTheme } from "@/context/ThemeContext";
  */
 export interface KPICardProps {
   title: string;
-  data: [string, number][];
+  data: [string, number][] | null;
 }
 
 /**
  * @function KPICard
- *
  * @description This component is used to display a KPI card with a small chart.
- * @param {string} title - The title of the KPI card.
- * @param {Array<[string, number]>} data - The data to display in the KPI card.
- * @returns {JSX.Element} The KPICard component.
+ * @param title - The title of the KPI card.
+ * @param data - The data to display in the KPI card.
+ * @returns The KPICard component.
  */
 export const KPICard: FC<KPICardProps> = ({ title, data }) => {
   // Extract the theme from the theme context
@@ -53,15 +55,42 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
   // Initialize the chart
   const { ref, chart } = useEcharts(initOpts);
 
+  // Memoize the last datapoint to prevent unnecessary re-renders
+  const { lastDatapoint, firstDate, lastDate } = useMemo(() => {
+    if (!data)
+      return {
+        lastDatapoint: ["0", 0] as const,
+        firstDate: 0,
+        lastDate: 0,
+      };
+
+    return {
+      lastDatapoint: data[data.length - 1],
+      firstDate: data[0][0],
+      lastDate: data[data.length - 1][0],
+    };
+  }, [data]);
+
   // State to store the focused datapoint
-  const [focusedDatapoint, setFocusedDatapoint] = useState<[string, number]>(
-    data[data.length - 1],
-  );
+  const [focusedDatapoint, setFocusedDatapoint] =
+    useState<readonly [string, number]>(lastDatapoint);
+
+  // Update the focused datapoint when the last datapoint changes
+  useEffect(() => {
+    setFocusedDatapoint(lastDatapoint);
+  }, [lastDatapoint]);
 
   // Setup Echarts with its options
   useEffect(() => {
     // Return early if the chart hasn't been initialized yet
-    if (!chart) return;
+    if (!chart || !data) return;
+
+    // Get the color variant
+    // Get the color variant
+    const { areaStyle, lineStyle, itemStyle } = getChartColorVariant(
+      "blue",
+      theme,
+    );
 
     // Define the options
     const option: echarts.EChartsOption = {
@@ -97,32 +126,14 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
           type: "line",
           data,
           clip: false,
-          lineStyle: {
-            color: "#3b82f6",
-            width: 1.5,
-          },
-          itemStyle: {
-            color: theme === "light" ? "#ffffff" : "#030712",
-            borderColor: "#3b82f6",
-            borderWidth: 2,
-          },
+          lineStyle,
+          itemStyle,
           showSymbol: false,
           symbol: "circle",
           symbolSize: 6,
           smooth: true,
-          cursor: "pointer",
           emphasis: { disabled: true },
-          areaStyle: {
-            opacity: 0.8,
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              theme === "light"
-                ? { offset: 0, color: "rgba(96, 165, 250, 1)" }
-                : { offset: 0, color: "rgba(30, 64, 175, 1)" },
-              theme === "light"
-                ? { offset: 1, color: "rgba(147, 197, 253, 0)" }
-                : { offset: 1, color: "rgba(30, 58, 138, 0)" },
-            ]),
-          },
+          areaStyle,
           silent: true,
         },
       ],
@@ -137,17 +148,17 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
 
       // If the dataIndex is not present, set the current datapoint to the last datapoint in the dataset
       if (!dataIndex) {
-        setFocusedDatapoint(data[data.length - 1]);
+        setFocusedDatapoint(data?.[data.length - 1] ?? ["", 0]);
         return;
       }
 
       // Update the current datapoint to the datapoint at the dataIndex
-      setFocusedDatapoint(data[dataIndex]);
+      setFocusedDatapoint(data?.[dataIndex] ?? ["", 0]);
     });
 
     // Event listener that resets the current datapoint when the cursor leaves the chart
     chart.on("globalout", () => {
-      setFocusedDatapoint(data[data.length - 1]);
+      setFocusedDatapoint(data?.[data.length - 1] ?? ["", 0]);
     });
 
     // Get the chart wrappers
@@ -160,9 +171,6 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
     wrapper.style.overflow = "visible";
     svg.style.overflow = "visible";
   }, [chart, data, theme]);
-
-  // If the data is empty, don't render anything
-  if (data.length === 0) return null;
 
   return (
     <div
@@ -193,15 +201,15 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
 
       <div className="flex w-full flex-col items-center gap-y-2.5">
         {/* Chart */}
-        <div ref={ref} className="h-8 w-full overflow-visible" />
+        <div ref={ref} className="h-10 w-full overflow-visible" />
 
         {/* Date range */}
         <div className="flex h-[16px] w-full flex-row items-center justify-between">
           <p className="text-xs text-gray-500">
-            {formatDate({ timestamp: data[0][0] })}
+            {formatDate({ timestamp: firstDate })}
           </p>
           <p className="text-xs text-gray-500">
-            {formatDate({ timestamp: data[data.length - 1][0] })}
+            {formatDate({ timestamp: lastDate })}
           </p>
         </div>
       </div>
