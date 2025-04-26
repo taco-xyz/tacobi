@@ -32,6 +32,21 @@ export interface DatasetSchema {
 }
 
 /**
+ * A data source, containing a name and link.
+ * @property name - The name of the data source.
+ * @property link - The link to the data source.
+ * @example
+ * const dataSource: DataSource = {
+ *   name: "CoinGecko",
+ *   link: "https://www.coingecko.com",
+ * };
+ */
+export interface DataSource {
+  name: string;
+  link: string;
+}
+
+/**
  * Metadata about a dataset, containing an id, route, and schema.
  * @property id - The id of the dataset.
  * @property route - The route of the dataset.
@@ -41,6 +56,7 @@ export interface DatasetMetadata {
   id: string;
   route: string;
   dataset_schema: DatasetSchema;
+  sources: DataSource[];
 }
 
 /**
