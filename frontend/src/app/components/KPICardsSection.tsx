@@ -12,18 +12,11 @@ import { KPICard } from "@/components/charts/KPICard";
 export const KPICardsSection: FC = () => {
   // Fetch the dataset using TacoBI
   const { useDatasets } = useTacoBI();
-  const [protocolStatsRequest, marketsCurrentRequest] = useDatasets([
-    "protocol-stats",
-    "markets-current",
-  ]);
+  const [protocolStatsRequest] = useDatasets(["protocol-stats"]);
 
   // Split the data into multiple datasets
   const processedDatasets = useMemo(() => {
-    if (
-      protocolStatsRequest.state !== "loaded" ||
-      marketsCurrentRequest.state !== "loaded"
-    )
-      return null;
+    if (protocolStatsRequest.state !== "loaded") return null;
 
     const sortedProtocolStats = protocolStatsRequest.source.sort(
       (a, b) =>
@@ -43,7 +36,7 @@ export const KPICardsSection: FC = () => {
     };
 
     return datasets;
-  }, [protocolStatsRequest, marketsCurrentRequest]);
+  }, [protocolStatsRequest]);
 
   return (
     <div className="grid w-full grid-cols-1 gap-6 md:grid-cols-2">

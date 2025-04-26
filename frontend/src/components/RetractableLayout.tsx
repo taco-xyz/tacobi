@@ -21,7 +21,7 @@ export const RetractableLayout: FC<PropsWithChildren> = ({ children }) => {
     <div
       className={clsx(
         isOpen ? "lg:ml-[16rem]" : "lg:ml-[6rem]",
-        "relative flex h-screen w-full flex-col items-center overflow-x-hidden px-6 py-4 lg:py-6",
+        "relative flex w-full flex-col items-center overflow-x-hidden px-6 py-4 lg:py-6",
       )}
       style={{
         transition: "margin-left 0.2s ease-in-out",

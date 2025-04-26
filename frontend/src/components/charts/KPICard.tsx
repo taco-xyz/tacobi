@@ -174,14 +174,14 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
 
   return (
     <div
-      className="flex w-full flex-col gap-y-6 rounded-lg p-6 ring ring-gray-200 dark:bg-gray-900/25 dark:ring-gray-900"
+      className="flex w-full flex-col gap-y-6 rounded-lg bg-white p-6 shadow ring ring-gray-200 dark:bg-gray-950/50 dark:ring-gray-900"
       style={{
         transition: "box-shadow 0.2s ease-in-out",
       }}
     >
       <div className="flex w-full flex-col items-center gap-y-1">
         {/* Title */}
-        <h1 className="w-full text-start font-mono text-sm text-gray-500 uppercase dark:text-gray-400">
+        <h1 className="font-geist-mono w-full text-start text-xs tracking-wide text-gray-500 uppercase">
           {title}
         </h1>
 
