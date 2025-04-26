@@ -85,7 +85,7 @@ export const ExpandableSidebar: FC = () => {
         isOpen
           ? "w-full opacity-100 lg:w-[16rem]"
           : "w-0 opacity-0 lg:w-[6rem]",
-        "fixed top-0 right-0 bottom-0 left-0 z-40 flex h-screen flex-col items-center justify-between overflow-hidden border-gray-200 bg-white lg:border-r lg:opacity-100 dark:border-gray-900 dark:bg-gray-950/50",
+        "fixed top-0 right-0 bottom-0 left-0 z-40 flex h-screen flex-col items-center justify-between overflow-hidden border-gray-200 bg-white lg:border-r lg:opacity-100 dark:border-gray-900 lg:dark:bg-gray-950/50 dark:bg-gray-950",
       )}
       style={{
         transition:
