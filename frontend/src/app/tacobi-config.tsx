@@ -1,5 +1,16 @@
 import { createTacoBI } from "@/tacobi";
-import type { TacoBISpec } from "@/tacobi";
+import type { TacoBISpec, DataSource } from "@/tacobi";
+
+const sources: DataSource[] = [
+  {
+    name: "Morpho API",
+    link: "https://morpho.org",
+  },
+  {
+    name: "Dune",
+    link: "https://dune.com",
+  },
+];
 
 const spec = {
   datasets: [
@@ -18,6 +29,7 @@ const spec = {
           { name: "MORPHO_dollars_borrow", valueType: "number" },
         ],
       },
+      sources,
     },
     {
       id: "protocol-stats",
@@ -34,6 +46,7 @@ const spec = {
           { name: "vaults_revenue", valueType: "number" },
         ],
       },
+      sources,
     },
     {
       id: "markets-current",
@@ -51,6 +64,7 @@ const spec = {
           { name: "supply_asset_symbol", valueType: "string" },
         ],
       },
+      sources,
     },
   ],
 } as const satisfies TacoBISpec;
