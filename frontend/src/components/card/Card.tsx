@@ -1,7 +1,15 @@
-import { KPICard, FullCard, CardKind } from "@/components/card/kinds";
-import { DataSource, ExtractDatasetIds } from "@/tacobi/schema";
+// React Imports
 import { ReactNode, FC, useMemo } from "react";
+
+// Card Imports
+import { SimpleCard, FullCard, CardKind } from "@/components/card/kinds";
+
+// TacoBI Imports
+import { DataSource, ExtractDatasetIds } from "@/tacobi/schema";
 import { spec, Spec, useTacoBI } from "@/app/tacobi-config";
+
+// Context Imports
+import { CardMenuProvider } from "@/components/card/kinds/full-card/card-menu/CardMenuContext";
 
 /**
  * Represents the props of a TacoBI card.
@@ -73,9 +81,9 @@ export type CardInternalLoadingState = CardInternalProps["loadingState"];
 export const CardInternal: FC<CardInternalProps> = (props) => {
   switch (props.cardKind) {
     case "full":
-      return <FullCard {...props} />;
-    case "kpi":
-      return <KPICard {...props} />;
+      return <CardMenuProvider><FullCard {...props} /></CardMenuProvider>;
+    case "simple":
+      return <SimpleCard {...props} />;
   }
 };
 

@@ -48,7 +48,7 @@ export const NavigationGroup: FC<NavigationGroupProps> = ({
       {/* Group Name */}
       <h1
         className={clsx(
-          "font-geist-mono h-5.5 text-xs font-medium tracking-wider text-nowrap text-gray-500 capitalize",
+          "font-geist-mono h-5.5 text-xs font-medium tracking-wide text-nowrap text-gray-500 uppercase",
           isOpen ? "lg:h-5.5 lg:opacity-100" : "lg:h-0 lg:opacity-0",
         )}
         style={{

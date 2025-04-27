@@ -15,6 +15,9 @@ import { OverviewCard } from "./components/OverviewCardProps";
 // Hooks Imports
 import { useController } from "./hooks/useController";
 
+// Card Imports
+import { Card } from "@/components/card/Card";
+
 /**
  * Displays protocols stats like:
  * - Total borrow and supply in USD
@@ -61,25 +64,14 @@ export const ProtocolStatsChart: FC = () => {
   }, [datasets]);
 
   return (
-    <div
-      className="flex w-full flex-col gap-y-6 rounded-lg p-6 ring ring-gray-200 transition-all duration-200 dark:bg-gray-900/25 dark:ring-gray-900"
-      style={{
-        transition: "box-shadow 0.2s ease-in-out",
-      }}
+    <Card
+      title="Rewards & Assets"
+      description="The total amount of assets borrowed and supplied, and the total amount of rewards for suppliers and borrowers."
+      datasetIds={["protocol-stats"]}
+      cardKind="full"
     >
-      {/* Title */}
-      <div className="flex w-full flex-col gap-y-2">
-        <h1 className="w-full text-start font-mono text-sm font-normal text-gray-500 uppercase dark:text-gray-400">
-          Rewards & Assets
-        </h1>
-        <p className="text-sm text-gray-500">
-          The total amount of assets borrowed and supplied, as well as the total
-          amount of rewards for suppliers and borrowers.
-        </p>
-      </div>
-
       {/* Overview Header*/}
-      <div className="flex w-full flex-row items-center justify-between">
+      <div className="flex w-full flex-row items-center justify-between px-6">
         <span className="flex flex-col gap-x-4 gap-y-4 sm:flex-row">
           <OverviewCard
             title="Borrow"
@@ -106,7 +98,7 @@ export const ProtocolStatsChart: FC = () => {
         </span>
       </div>
 
-      <div className="relative mt-5 flex h-full w-full flex-col items-center gap-y-2.5">
+      <div className="relative flex h-full w-full flex-col items-center gap-y-2.5 px-6 pt-1 pb-6">
         {/* Chart */}
         <div ref={chartRef} className="h-60 w-full" />
 
@@ -129,6 +121,6 @@ export const ProtocolStatsChart: FC = () => {
           * Rewards values are scaled in the y axis
         </p>
       </div>
-    </div>
+    </Card>
   );
 };

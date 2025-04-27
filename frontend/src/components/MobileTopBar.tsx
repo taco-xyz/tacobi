@@ -23,51 +23,45 @@ export const MobileTopBar: FC = () => {
 
   return (
     <div
-      className="fixed top-0 right-0 left-0 z-50 bg-white px-6 lg:hidden dark:bg-gray-950"
+      className="fixed top-0 right-0 left-0 z-50 flex w-full flex-row items-center justify-between border-b border-gray-200 bg-white px-6 py-4 lg:hidden dark:border-gray-800 dark:bg-gray-950"
       style={{
-        transition: "background-color 0.2s ease-in-out",
+        transition:
+          "background-color 0.2s ease-in-out, border-color 0.2s ease-in-out",
       }}
     >
-      <div
-        className="flex w-full flex-row items-center justify-between border-b border-gray-200 py-4 dark:border-gray-800"
+      {/* Logo */}
+      <Logo />
+
+      {/* Open/Close Sidebar Button */}
+      <button
+        className="relative flex size-10 cursor-pointer items-center justify-center rounded-lg p-1 text-gray-500 hover:bg-gray-100 hover:text-blue-600 dark:hover:bg-gray-900 dark:hover:text-blue-400"
+        onClick={() => setIsOpen(!isOpen)}
         style={{
-          transition: "border-color 0.2s ease-in-out",
+          transition:
+            "background-color 0.2s ease-in-out, color 0.2s ease-in-out",
         }}
       >
-        {/* Logo */}
-        <Logo />
-
-        {/* Open/Close Sidebar Button */}
-        <button
-          className="relative flex size-10 cursor-pointer items-center justify-center rounded-lg p-1 text-gray-500 hover:bg-gray-100 hover:text-blue-600 dark:hover:bg-gray-900 dark:hover:text-blue-400"
-          onClick={() => setIsOpen(!isOpen)}
+        <MenuIcon
+          className={clsx(
+            isOpen ? "opacity-0" : "opacity-100",
+            "absolute size-7",
+          )}
+          strokeWidth={1.5}
           style={{
-            transition:
-              "background-color 0.2s ease-in-out, color 0.2s ease-in-out",
+            transition: "opacity 0.2s ease-in-out",
           }}
-        >
-          <MenuIcon
-            className={clsx(
-              isOpen ? "opacity-0" : "opacity-100",
-              "absolute size-7",
-            )}
-            strokeWidth={1.5}
-            style={{
-              transition: "opacity 0.2s ease-in-out",
-            }}
-          />
-          <XIcon
-            className={clsx(
-              isOpen ? "opacity-100" : "opacity-0",
-              "absolute size-7",
-            )}
-            strokeWidth={1.5}
-            style={{
-              transition: "opacity 0.2s ease-in-out",
-            }}
-          />
-        </button>
-      </div>
+        />
+        <XIcon
+          className={clsx(
+            isOpen ? "opacity-100" : "opacity-0",
+            "absolute size-7",
+          )}
+          strokeWidth={1.5}
+          style={{
+            transition: "opacity 0.2s ease-in-out",
+          }}
+        />
+      </button>
     </div>
   );
 };
