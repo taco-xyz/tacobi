@@ -1,6 +1,6 @@
 // Component Imports
 import { KPICardsSection } from "@/app/components/KPICardsSection";
-import { MarketsTable } from "@/app/components/markets-table";
+// import { MarketsTable } from "@/app/components/markets-table";
 import { ProtocolStatsChart } from "@/components/charts/protocol-stats-chart/ProtocolStatsChart";
 
 export default function Home() {

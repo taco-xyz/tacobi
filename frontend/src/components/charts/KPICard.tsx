@@ -19,15 +19,10 @@ import { useTheme } from "@/hooks/useTheme";
 // Chart Color Variants Imports
 import { getChartColorVariant } from "@/components/charts/lib/chartColorVariants";
 
-/**
- * KPICard Props
- *
- * @description The props for the KPICard component.
- * @property {string} title - The title of the KPI card.
- * @property {Array<[string, number]>} data - The data to display in the KPI card.
- */
-export interface KPICardProps {
-  title: string;
+// Card Imports
+import { Card, CardProps } from "@/components/card/Card";
+
+export interface KPICardProps extends Omit<CardProps, "children" | "cardKind"> {
   data: [string, number][] | null;
 }
 
@@ -35,10 +30,17 @@ export interface KPICardProps {
  * @function KPICard
  * @description This component is used to display a KPI card with a small chart.
  * @param title - The title of the KPI card.
+ * @param description - The description of the KPI card.
+ * @param datasetIds - The dataset IDs associated with the KPI card.
  * @param data - The data to display in the KPI card.
  * @returns The KPICard component.
  */
-export const KPICard: FC<KPICardProps> = ({ title, data }) => {
+export const KPICard: FC<KPICardProps> = ({
+  title,
+  description,
+  datasetIds,
+  data,
+}) => {
   // Extract the theme from the theme context
   const theme = useTheme();
 
@@ -85,7 +87,6 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
     // Return early if the chart hasn't been initialized yet
     if (!chart || !data) return;
 
-    // Get the color variant
     // Get the color variant
     const { areaStyle, lineStyle, itemStyle } = getChartColorVariant(
       "blue",
@@ -173,18 +174,17 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
   }, [chart, data, theme]);
 
   return (
-    <div
-      className="flex w-full flex-col gap-y-6 rounded-lg bg-white p-6 shadow ring ring-gray-200 dark:bg-gray-950/50 dark:ring-gray-900"
-      style={{
-        transition: "box-shadow 0.2s ease-in-out",
-      }}
+    <Card
+      title={title}
+      description={description}
+      datasetIds={datasetIds}
+      cardKind="simple"
     >
       <div className="flex w-full flex-col items-center gap-y-1">
         {/* Title */}
         <h1 className="font-geist-mono w-full text-start text-xs tracking-wide text-gray-500 uppercase">
           {title}
         </h1>
-
         {/* Current datapoint */}
         <div className="flex h-[28px] w-full flex-row items-center justify-between">
           <p
@@ -198,11 +198,9 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
           </p>
         </div>
       </div>
-
       <div className="flex w-full flex-col items-center gap-y-2.5">
         {/* Chart */}
         <div ref={ref} className="h-10 w-full overflow-visible" />
-
         {/* Date range */}
         <div className="flex h-[16px] w-full flex-row items-center justify-between">
           <p className="text-xs text-gray-500">
@@ -213,6 +211,6 @@ export const KPICard: FC<KPICardProps> = ({ title, data }) => {
           </p>
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
