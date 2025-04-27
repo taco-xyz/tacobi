@@ -12,7 +12,7 @@ const sources: DataSource[] = [
   },
 ];
 
-const spec = {
+export const spec = {
   datasets: [
     {
       id: "market-stats",

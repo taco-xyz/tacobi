@@ -5,15 +5,12 @@ import {
   ExtractDatasetSchemaRowType,
   TacoBISpec,
 } from "@/tacobi/schema";
-import { CardInternal, CardProps } from "@/tacobi/card";
 import {
-  FC,
   ReactNode,
   createContext,
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useState,
 } from "react";
 
@@ -40,7 +37,6 @@ export interface TacoBIContext<S extends TacoBISpec> {
   useDatasets: <T extends ExtractDatasetIds<S>[]>(
     ids: [...T],
   ) => OrderedDatasetRequests<S, T>;
-  Card: FC<CardProps<S>>;
 }
 
 /**
@@ -51,9 +47,6 @@ const createTacoBIContext = <S extends TacoBISpec>() =>
   createContext<TacoBIContext<S>>({
     useDatasets: () => {
       throw new Error("useDatasets not implemented");
-    },
-    Card: () => {
-      throw new Error("Card not implemented");
     },
   });
 
@@ -237,66 +230,8 @@ export const TacoBIProvider = <S extends TacoBISpec>({
     [datasetsById],
   );
 
-  // Recompute the Card as datasets arrive
-  const Card = useMemo(() => {
-    const CardComponent: FC<CardProps<S>> = (props) => {
-      // Check that all datasetIDs passed are valid
-      props.datasetIds.forEach((id) => {
-        if (!state.spec.datasets.some((meta) => meta.id === id)) {
-          throw new Error(
-            `Dataset ID ${id} is not specified in the spec. Valid IDs are: ${state.spec.datasets.map((meta) => meta.id).join(", ")}`,
-          );
-        }
-      });
-
-      // Compile the unique sources for the card based on the dataset ids.
-      const allSources = state.spec.datasets
-        .filter((meta) => props.datasetIds.includes(meta.id))
-        .flatMap((meta) => meta.sources);
-      const sources = Array.from(
-        new Map(allSources.map((source) => [source.name, source])).values(),
-      );
-
-      // Get the datasets for the card.
-      const selectedDatasets = props.datasetIds.map(
-        (id) => datasetsById[id as ExtractDatasetIds<S>],
-      );
-
-      // TODO - For now, we'll use a static timestamp - FIXME
-      const lastUpdated = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-
-      // Based on the loading state of the datasets, determine the loading
-      // state of the card.
-      const loadingStates: ("pending" | "error" | "loaded")[] =
-        selectedDatasets.map((dataset) => dataset.state);
-      const loadingState = loadingStates.includes("error")
-        ? "error"
-        : loadingStates.includes("pending")
-          ? "pending"
-          : "loaded";
-
-      return (
-        <CardInternal
-          datasetIds={props.datasetIds}
-          title={props.title}
-          description={props.description}
-          cardKind={props.cardKind}
-          sources={sources}
-          lastUpdated={lastUpdated}
-          loadingState={loadingState}
-        >
-          {props.children}
-        </CardInternal>
-      );
-    };
-
-    CardComponent.displayName = "Card";
-    return CardComponent;
-  }, [datasetsById, state.spec.datasets]);
-
   const contextValue: TacoBIContext<S> = {
     useDatasets,
-    Card,
   };
 
   return (
