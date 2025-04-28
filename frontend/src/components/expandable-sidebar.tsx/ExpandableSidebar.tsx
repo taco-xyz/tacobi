@@ -27,6 +27,8 @@ import { ThemeToggle } from "./ThemeToggle";
 import { Logo } from "../Logo";
 import { NavigationGroup } from "./NavigationGroup";
 
+import { WebGLShader } from "@/components/WebGLShader/WebGLShader";
+
 // Navigation Groups
 const navigationGroups: NavigationGroup[] = [
   {
@@ -85,7 +87,7 @@ export const ExpandableSidebar: FC = () => {
         isOpen
           ? "w-full opacity-100 lg:w-[16rem]"
           : "w-0 opacity-0 lg:w-[6rem]",
-        "fixed top-0 right-0 bottom-0 left-0 z-40 flex h-screen flex-col items-center justify-between overflow-hidden border-gray-200 bg-white lg:border-r lg:opacity-100 dark:border-gray-900 lg:dark:bg-gray-950/50 dark:bg-gray-950",
+        "fixed top-0 right-0 bottom-0 left-0 z-40 flex h-screen flex-col items-center justify-between overflow-hidden border-gray-200 bg-white lg:border-r lg:opacity-100 dark:border-gray-900 dark:bg-gray-950 lg:dark:bg-gray-950/50",
       )}
       style={{
         transition:
@@ -170,29 +172,53 @@ export const ExpandableSidebar: FC = () => {
 
         {/*Desktop Watermark*/}
         <div
-          className="relative mx-auto mt-4 hidden h-[46px] w-full items-center justify-center overflow-hidden rounded-lg text-center text-sm font-medium whitespace-nowrap text-gray-400 ring-1 ring-gray-200 ring-inset lg:flex dark:text-gray-600 dark:ring-gray-800"
+          className="relative mx-auto mt-4 hidden h-[46px] w-full items-center justify-center overflow-hidden rounded-xl border-2 border-transparent text-center text-sm font-medium whitespace-nowrap text-gray-500 opacity-85 ring-1 ring-white/25 lg:flex"
           style={{
             transition: "color 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
           }}
         >
+          <WebGLShader />
+
           {/*Open State*/}
           <span
             className={clsx(
               isOpen ? "opacity-100" : "opacity-0",
-              "absolute left-10",
+              "absolute left-10 mix-blend-color-burn",
             )}
             style={{
               transition: "opacity 0.2s ease-in-out",
             }}
           >
-            Powered by <span className="font-bold text-gray-500">deltaY</span>
+            Powered by <span className="font-bold">deltaY</span>
+          </span>
+          <span
+            className={clsx(
+              isOpen ? "opacity-50" : "opacity-0",
+              "absolute left-10 mix-blend-overlay",
+            )}
+            style={{
+              transition: "opacity 0.2s ease-in-out",
+            }}
+          >
+            Powered by <span className="font-bold">deltaY</span>
           </span>
 
           {/*Closed State*/}
           <span
             className={clsx(
               isOpen ? "opacity-0" : "opacity-100",
-              "absolute left-[20px]",
+              "absolute left-[18px] font-bold mix-blend-color-burn",
+            )}
+            style={{
+              transition: "opacity 0.2s ease-in-out",
+            }}
+          >
+            Y
+          </span>
+          <span
+            className={clsx(
+              isOpen ? "opacity-0" : "opacity-30",
+              "absolute left-[18px] font-bold mix-blend-overlay",
             )}
             style={{
               transition: "opacity 0.2s ease-in-out",
