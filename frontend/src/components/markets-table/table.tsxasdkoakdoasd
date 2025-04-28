@@ -71,7 +71,7 @@ const SortableHeader = <TData, TValue>({
  */
 const MarketsTable: FC = () => {
   const { useDatasets } = useTacoBI();
-  const [marketStats] = useDatasets(["markets-current"]);
+  // const [marketStats] = useDatasets(["markets-current"]);
 
   // Extract the row type of the market stats dataset request so that we can
   // use it for the the Tanstack Table generics.

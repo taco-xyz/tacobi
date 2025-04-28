@@ -22,14 +22,8 @@ import {
 import { useTacoBI } from "@/app/tacobi-config";
 import { ExtractDatasetRequestRowType } from "@/tacobi";
 
-// Utils Imports
-import { formatUSDCurrency } from "@/utils/formatUSDCurrency";
-
 // Components Imports
-import {
-  ProtocolStatsTooltip,
-  ProtocolStatsTooltipProps,
-} from "../components/ProtocolStatsTooltip";
+import { Tooltip, TooltipProps } from "../components/Tooltip";
 
 // Custom Hooks Imports
 import { useTheme } from "@/hooks/useTheme";
@@ -56,17 +50,12 @@ export function useController() {
 
   // Dataset fetching
   const { useDatasets } = useTacoBI();
-  const [rawDataset] = useDatasets(["borrow-supply-rewards"]);
+  const [rawDataset] = useDatasets(["curators-vaults-markets"]);
 
-  type ProtocolStat = ExtractDatasetRequestRowType<typeof rawDataset>;
+  type DataPoint = ExtractDatasetRequestRowType<typeof rawDataset>;
 
   const tooltipContainerRef = useRef<HTMLDivElement>(null);
   const tooltipRootRef = useRef<Root>(null);
-
-  // Whether to display rewards (not supply and borrow) using USD or $MORPHO token
-  const [rewardsCurrency, setRewardsCurrency] = useState<"USD" | "MORPHO">(
-    "USD",
-  );
 
   // Memoized the processed (sorted) datasets
   const processedDatasets = useMemo(() => {
@@ -122,62 +111,30 @@ export function useController() {
       // First Y axis
       {
         ...getSeriesStyle("blue", false),
-        name: "Borrow",
-        yAxisIndex: 0,
+        name: "Vaults",
         encode: {
           x: "block_time_day",
-          y: "market_borrow_assets_USD",
+          y: "vault_count",
         },
       },
       {
         ...getSeriesStyle("purple", false),
-        name: "Supply",
-        yAxisIndex: 0,
+        name: "Curators",
         encode: {
           x: "block_time_day",
-          y: "market_supply_assets_USD",
+          y: "curator_count",
         },
       },
       // Second Y axis
       {
-        ...getSeriesStyle("orange", true),
-        name: "Supplier Rewards",
-        yAxisIndex: 1,
+        ...getSeriesStyle("orange", false),
+        name: "Markets",
         encode: {
           x: "block_time_day",
-          y:
-            rewardsCurrency === "USD"
-              ? "MORPHO_dollars_supply"
-              : "MORPHO_tokens_supply",
-        },
-      },
-      {
-        ...getSeriesStyle("red", true),
-        name: "Borrower Rewards",
-        yAxisIndex: 1,
-        encode: {
-          x: "block_time_day",
-          y:
-            rewardsCurrency === "USD"
-              ? "MORPHO_dollars_borrow"
-              : "MORPHO_tokens_borrow",
+          y: "market_count",
         },
       },
     ];
-
-    // We need to calculate the scale of the rewards axis based on the currency
-    // So that we can display it as only a fraction of the total scale to
-    // represent the relativity
-    const maxRewards =
-      rewardsCurrency === "USD"
-        ? Math.max(
-            ...processedDatasets.map((d) => d.MORPHO_dollars_supply),
-            ...processedDatasets.map((d) => d.MORPHO_dollars_borrow),
-          )
-        : Math.max(
-            ...processedDatasets.map((d) => d.MORPHO_tokens_supply),
-            ...processedDatasets.map((d) => d.MORPHO_tokens_borrow),
-          );
 
     // Constructh the option
     const options: echarts.EChartsOption = {
@@ -218,13 +175,6 @@ export function useController() {
             },
           },
         },
-        {
-          type: "value",
-          name: "Rewards",
-          show: false,
-          max: maxRewards * 2,
-          position: "right",
-        },
       ],
       dataset: {
         source: processedDatasets,
@@ -248,7 +198,7 @@ export function useController() {
           // Type the params
           const typedParams = params as unknown as Array<{
             axisValueLabel: string;
-            data: ProtocolStat;
+            data: DataPoint;
           }>;
           const date = typedParams[0].axisValueLabel;
           const data = typedParams[0].data;
@@ -257,18 +207,15 @@ export function useController() {
           const formattedDate = `${formatDate({ timestamp: date })}, ${year}`;
 
           // Format the values for display
-          const formattedProps: ProtocolStatsTooltipProps = {
+          const formattedProps: TooltipProps = {
             date: formattedDate,
-            borrow: formatUSDCurrency(data.market_borrow_assets_USD),
-            supply: formatUSDCurrency(data.market_supply_assets_USD),
-            supplierRewards: formatUSDCurrency(data.MORPHO_dollars_supply),
-            borrowerRewards: formatUSDCurrency(data.MORPHO_dollars_borrow),
+            vaultCount: data.vault_count.toString(),
+            curatorCount: data.curator_count.toString(),
+            marketCount: data.market_count.toString(),
           };
 
           // Render component to the container
-          tooltipRootRef.current?.render(
-            <ProtocolStatsTooltip {...formattedProps} />,
-          );
+          tooltipRootRef.current?.render(<Tooltip {...formattedProps} />);
 
           // Return the container DOM element
           return tooltipContainerRef.current;
@@ -289,13 +236,11 @@ export function useController() {
     // Override overflow so edge point markers are visible
     wrapper.style.overflow = "visible";
     svg.style.overflow = "visible";
-  }, [chart, processedDatasets, rewardsCurrency, theme]);
+  }, [chart, processedDatasets, theme]);
 
   return {
     focusedDate,
     setFocusedDate,
-    rewardsCurrency,
-    setRewardsCurrency,
     datasets: processedDatasets,
     chartRef,
   };

@@ -11,29 +11,49 @@ const sources: DataSource[] = [
     link: "https://dune.com",
   },
 ];
-
 export const spec = {
   datasets: [
     {
-      id: "market-stats",
-      route: "/market-stats",
+      id: "morpho-daily-prices",
+      route: "/morpho-daily-prices",
       dataset_schema: {
         columns: [
-          { name: "market_key", valueType: "string" },
+          { name: "asset_symbol", valueType: "string" },
           { name: "block_time_day", valueType: "string" },
-          { name: "market_supply_assets_USD", valueType: "number" },
-          { name: "market_borrow_assets_USD", valueType: "number" },
-          { name: "MORPHO_tokens_supply", valueType: "number" },
-          { name: "MORPHO_tokens_borrow", valueType: "number" },
-          { name: "MORPHO_dollars_supply", valueType: "number" },
-          { name: "MORPHO_dollars_borrow", valueType: "number" },
+          { name: "price", valueType: "number" },
+          { name: "asset_chain", valueType: "number" },
         ],
       },
       sources,
     },
     {
-      id: "protocol-stats",
-      route: "/protocol-stats",
+      id: "morpho-tvl",
+      route: "/morpho-tvl",
+      dataset_schema: {
+        columns: [
+          { name: "block_time_day", valueType: "string" },
+          { name: "tvl_usd", valueType: "number" },
+        ],
+      },
+      sources,
+    },
+    {
+      id: "morpho-rewards",
+      route: "/morpho-rewards",
+      dataset_schema: {
+        columns: [
+          { name: "block_time_day", valueType: "string" },
+          { name: "MORPHO_tokens_supply", valueType: "number" },
+          { name: "MORPHO_tokens_borrow", valueType: "number" },
+          { name: "MORPHO_tokens_cumulative", valueType: "number" },
+          { name: "MORPHO_dollars_cumulative", valueType: "number" },
+        ],
+      },
+      sources,
+    },
+    {
+      id: "borrow-supply-rewards",
+      route: "/borrow-supply-rewards",
       dataset_schema: {
         columns: [
           { name: "block_time_day", valueType: "string" },
@@ -49,19 +69,14 @@ export const spec = {
       sources,
     },
     {
-      id: "markets-current",
-      route: "/markets-current",
+      id: "curators-vaults-markets",
+      route: "/curators-vaults-markets",
       dataset_schema: {
         columns: [
-          { name: "market_address", valueType: "string" },
-          { name: "supply_assets_USD", valueType: "number" },
-          { name: "borrow_assets_USD", valueType: "number" },
-          { name: "liquidity_assets_USD", valueType: "number" },
-          { name: "utilization", valueType: "number" },
-          { name: "morpho_tokens", valueType: "number" },
-          { name: "morpho_tokens_cumulative", valueType: "number" },
-          { name: "borrow_asset_symbol", valueType: "string" },
-          { name: "supply_asset_symbol", valueType: "string" },
+          { name: "block_time_day", valueType: "string" },
+          { name: "curator_count", valueType: "number" },
+          { name: "market_count", valueType: "number" },
+          { name: "vault_count", valueType: "number" },
         ],
       },
       sources,

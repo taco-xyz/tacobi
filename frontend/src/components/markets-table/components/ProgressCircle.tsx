@@ -66,7 +66,7 @@ const ProgressCircle = React.forwardRef<SVGSVGElement, ProgressCircleProps>(
       showAnimation = true,
       variant,
       className,
-      children,   
+      children,
       backgroundClassName,
       foregroundClassName,
       foregroundOpacity,

@@ -67,7 +67,7 @@ export const ProtocolStatsChart: FC = () => {
     <Card
       title="Rewards & Assets"
       description="The total amount of assets borrowed and supplied, and the total amount of rewards for suppliers and borrowers."
-      datasetIds={["protocol-stats"]}
+      datasetIds={["borrow-supply-rewards"]}
       cardKind="full"
     >
       {/* Overview Header*/}
@@ -86,12 +86,12 @@ export const ProtocolStatsChart: FC = () => {
         </span>
         <span className="flex flex-col gap-x-4 gap-y-4 sm:flex-row">
           <OverviewCard
-            title="Supplier Rewards*"
+            title="Daily Supplier Rewards*"
             colorVariant="orange"
             displayValue={morphoDollarsSupply ?? "-"}
           />
           <OverviewCard
-            title="Borrower Rewards*"
+            title="Daily Borrower Rewards*"
             colorVariant="red"
             displayValue={morphoDollarsBorrow ?? "-"}
           />
