@@ -10,6 +10,7 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@emotion/css": "^11.13.5",
     "@headlessui/react": "^2.2.2",
     "@kbox-labs/react-echarts": "^1.4.2",
     "@tanstack/react-table": "^8.21.3",
