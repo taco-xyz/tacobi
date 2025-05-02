@@ -81,6 +81,17 @@ export const spec = {
       },
       sources,
     },
+    {
+      id: "markets-utilization",
+      route: "/markets-utilization",
+      dataset_schema: {
+        columns: [
+          { name: "block_time_day", valueType: "string" },
+          { name: "weighted_market_utilization", valueType: "number" },
+        ],
+      },
+      sources,
+    },
   ],
 } as const satisfies TacoBISpec;
 

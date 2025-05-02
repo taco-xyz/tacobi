@@ -124,6 +124,31 @@ async def curators_vaults_markets() -> DataFrame[MorphoCuratorsVaultsMarketsMode
     return MORPHO_CURATORS_VAULTS_MARKETS
 
 
+## ====================================
+## Graph #3
+## This graph includes:
+## - Weighted Market Utilization
+## ====================================
+
+# Markets Utilization
+MORPHO_MARKETS_UTILIZATION = pd.read_csv("datasets/morpho_markets_utilization.csv")
+
+# Process the markets utilization data
+MORPHO_MARKETS_UTILIZATION["weighted_market_utilization"] = (
+    MORPHO_MARKETS_UTILIZATION["weighted_market_utilization"] * 100
+).round(1)
+
+
+class MorphoMarketsUtilizationModel(pa.DataFrameModel):
+    block_time_day: str
+    weighted_market_utilization: float
+
+
+@tacobi.dataset("/markets-utilization", DatasetTypeEnum.TABULAR)
+async def markets_utilization() -> DataFrame[MorphoMarketsUtilizationModel]:
+    return MORPHO_MARKETS_UTILIZATION
+
+
 if __name__ == "__main__":
     print(tacobi.get_schema().model_dump_json())
     tacobi.run()

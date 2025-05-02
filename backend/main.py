@@ -104,6 +104,35 @@ async def markets_current() -> DataFrame[MarketsCurrentModel]:
     return markets_current_df.pipe(DataFrame[MarketsCurrentModel])
 
 
+# Markets Utilization
+
+
+class MarketsUtilizationModel(pa.DataFrameModel):
+    block_time_day: datetime
+    weighted_market_utilization: float
+
+
+markets_utilization_df = pd.read_csv(
+    "datasets/morpho_markets_utilization.csv",
+)
+
+# Convert block_time_day to datetime
+markets_utilization_df["block_time_day"] = pd.to_datetime(
+    markets_utilization_df["block_time_day"]
+)
+
+# Sort by date
+markets_utilization_df = markets_utilization_df.sort_values(by="block_time_day")
+
+
+@tacobi.dataset("/markets-utilization", DatasetTypeEnum.TABULAR)
+async def markets_utilization() -> DataFrame[MarketsUtilizationModel]:
+    """
+    A dataset that contains weighted market utilization over time.
+    """
+    return markets_utilization_df.pipe(DataFrame[MarketsUtilizationModel])
+
+
 if __name__ == "__main__":
     print(tacobi.get_schema().model_dump_json())
     tacobi.run()

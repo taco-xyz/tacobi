@@ -9,19 +9,17 @@ import { formatDate } from "@/utils/formatDate";
 // Utils Imports
 import { formatUSDCurrency } from "@/utils/formatUSDCurrency";
 
-// Components Imports
-import { OverviewCard } from "./components/OverviewCardProps";
-
 // Hooks Imports
-import { useController } from "./hooks/useController";
+import { useController } from "./controller";
 
 // Card Imports
 import { Card } from "@/components/card/Card";
 
+// Chart Imports
+import { LineLegend } from "@/components/charts/lib/legends/LineLegend";
+
 /**
- * Displays protocols stats like:
- * - Total borrow and supply in USD
- * - Total supplier and borrower rewards in USD and Morpho (toggle)
+ * Displays the total amount of assets borrowed and supplied, and the total amount of rewards for suppliers and borrowers.
  */
 export const ProtocolStatsChart: FC = () => {
   const { datasets, chartRef } = useController();
@@ -73,24 +71,24 @@ export const ProtocolStatsChart: FC = () => {
       {/* Overview Header*/}
       <div className="flex w-full flex-row items-center justify-between px-6">
         <span className="flex flex-col gap-x-4 gap-y-4 sm:flex-row">
-          <OverviewCard
+          <LineLegend
             title="Borrow"
             colorVariant="blue"
             displayValue={marketBorrowAssetsUSD ?? "-"}
           />
-          <OverviewCard
+          <LineLegend
             title="Supply"
             colorVariant="purple"
             displayValue={marketSupplyAssetsUSD ?? "-"}
           />
         </span>
         <span className="flex flex-col gap-x-4 gap-y-4 sm:flex-row">
-          <OverviewCard
+          <LineLegend
             title="Daily Supplier Rewards*"
             colorVariant="orange"
             displayValue={morphoDollarsSupply ?? "-"}
           />
-          <OverviewCard
+          <LineLegend
             title="Daily Borrower Rewards*"
             colorVariant="red"
             displayValue={morphoDollarsBorrow ?? "-"}

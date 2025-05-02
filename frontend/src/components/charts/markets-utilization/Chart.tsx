@@ -18,54 +18,40 @@ import { LineLegend } from "@/components/charts/lib/legends/LineLegend";
 /**
  * Displays the number of active curators, vaults and markets over time.
  */
-export const CuratorsVaultsMarketsChart: FC = () => {
+export const MarketsUtilizationChart: FC = () => {
   const { datasets, chartRef } = useController();
 
   // Memoize the current stats
-  const { curatorCount, marketCount, vaultCount, startDate, endDate } =
-    useMemo(() => {
-      if (datasets === null)
-        return {
-          curatorCount: null,
-          marketCount: null,
-          vaultCount: null,
-          startDate: null,
-          endDate: null,
-        };
-
+  const { weightedMarketUtilization, startDate, endDate } = useMemo(() => {
+    if (datasets === null)
       return {
-        curatorCount: datasets[datasets.length - 1].curator_count,
-        marketCount: datasets[datasets.length - 1].market_count,
-        vaultCount: datasets[datasets.length - 1].vault_count,
-        startDate: datasets[0].block_time_day,
-        endDate: datasets[datasets.length - 1].block_time_day,
+        weightedMarketUtilization: null,
+        startDate: null,
+        endDate: null,
       };
-    }, [datasets]);
+
+    return {
+      weightedMarketUtilization:
+        datasets[datasets.length - 1].weighted_market_utilization,
+      startDate: datasets[0].block_time_day,
+      endDate: datasets[datasets.length - 1].block_time_day,
+    };
+  }, [datasets]);
 
   return (
     <Card
-      title="Curators, Vaults & Markets"
-      description="Evolution of the number of active curators, vaults and markets over time."
-      datasetIds={["curators-vaults-markets"]}
+      title="Daily Weighted Market Utilization"
+      description="Evolution of the market utilization over time."
+      datasetIds={["markets-utilization"]}
       cardKind="full"
     >
       {/* Overview Header*/}
       <div className="flex w-full flex-row items-center justify-between px-6">
         <span className="flex flex-col gap-x-4 gap-y-4 sm:flex-row">
           <LineLegend
-            title="Curators"
+            title="Weighted Market Utilization"
             colorVariant="blue"
-            displayValue={curatorCount?.toString() ?? "-"}
-          />
-          <LineLegend
-            title="Vaults"
-            colorVariant="orange"
-            displayValue={vaultCount?.toString() ?? "-"}
-          />
-          <LineLegend
-            title="Markets"
-            colorVariant="purple"
-            displayValue={marketCount?.toString() ?? "-"}
+            displayValue={`${weightedMarketUtilization?.toString() ?? ""}%`}
           />
         </span>
       </div>

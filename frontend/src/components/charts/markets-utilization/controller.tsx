@@ -23,7 +23,7 @@ import { useTacoBI } from "@/app/tacobi-config";
 import { ExtractDatasetRequestRowType } from "@/tacobi";
 
 // Components Imports
-import { Tooltip, TooltipProps } from "../components/Tooltip";
+import { Tooltip, TooltipProps } from "./Tooltip";
 
 // Custom Hooks Imports
 import { useTheme } from "@/hooks/useTheme";
@@ -50,7 +50,7 @@ export function useController() {
 
   // Dataset fetching
   const { useDatasets } = useTacoBI();
-  const [rawDataset] = useDatasets(["curators-vaults-markets"]);
+  const [rawDataset] = useDatasets(["markets-utilization"]);
 
   type DataPoint = ExtractDatasetRequestRowType<typeof rawDataset>;
 
@@ -110,28 +110,11 @@ export function useController() {
     const series = [
       // First Y axis
       {
-        ...getSeriesStyle("blue", false),
-        name: "Vaults",
+        ...getSeriesStyle("blue", true),
+        name: "Weighted Market Utilization",
         encode: {
           x: "block_time_day",
-          y: "vault_count",
-        },
-      },
-      {
-        ...getSeriesStyle("purple", false),
-        name: "Curators",
-        encode: {
-          x: "block_time_day",
-          y: "curator_count",
-        },
-      },
-      // Second Y axis
-      {
-        ...getSeriesStyle("orange", false),
-        name: "Markets",
-        encode: {
-          x: "block_time_day",
-          y: "market_count",
+          y: "weighted_market_utilization",
         },
       },
     ];
@@ -209,9 +192,7 @@ export function useController() {
           // Format the values for display
           const formattedProps: TooltipProps = {
             date: formattedDate,
-            vaultCount: data.vault_count.toString(),
-            curatorCount: data.curator_count.toString(),
-            marketCount: data.market_count.toString(),
+            utilization: `${data.weighted_market_utilization.toString()}%`,
           };
 
           // Render component to the container

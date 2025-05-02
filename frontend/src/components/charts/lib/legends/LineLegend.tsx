@@ -11,25 +11,25 @@ import {
 import { useTheme } from "@/hooks/useTheme";
 
 /**
- * Small Overview Card Props
- * @property title - The title of the KPI card.
- * @property colorVariant - The color variant of the KPI card.
- * @property displayValue - The value to display in the KPI card at the bottom.
+ * @description Line Legend Props
+ * @property title - The title of the line legend.
+ * @property colorVariant - The color variant of the line legend.
+ * @property displayValue - The value to display in the line legend.
  */
-export interface OverviewCardProps {
+export interface LineLegendProps {
   title: string;
   colorVariant: ChartColorVariant;
   displayValue: string;
 }
 
 /**
- * @description This component is used to display a small overview card for the protocol stats chart.
- * @param title - The title of the KPI card.
- * @param colorVariant - The color variant of the KPI card.
- * @param displayValue - The value to display in the KPI card at the bottom.
- * @returns The OverviewCard component.
+ * @description This component is used to display a line legend for any line series in a chart.
+ * @param title - The title of the line legend.
+ * @param colorVariant - The color variant of the line legend.
+ * @param displayValue - The value to display in the line legend.
+ * @returns The LineLegend component.
  */
-export const OverviewCard: FC<OverviewCardProps> = ({
+export const LineLegend: FC<LineLegendProps> = ({
   title,
   colorVariant,
   displayValue,
