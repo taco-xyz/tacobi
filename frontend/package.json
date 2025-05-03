@@ -1,6 +1,6 @@
 {
-  "name": "@taco/tacobi",
-  "version": "0.1.0",
+  "name": "@taco-division/tacobi",
+  "version": "0.1.7",
   "scripts": {
     "build": "tsc"
   },
@@ -23,3 +23,4 @@
     "typescript": "^5"
   }
 }
+  
