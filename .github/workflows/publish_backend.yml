@@ -19,6 +19,9 @@ jobs:
       
       - name: Build package
         run: uv build
-          
+
+      - name: List dist dir
+        run: ls -al dist
+
       - name: Publish to PyPI
         run: uv publish
