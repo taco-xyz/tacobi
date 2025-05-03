@@ -1,8 +1,11 @@
 {
   "name": "@taco-division/tacobi",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "scripts": {
     "build": "tsc"
+  },
+  "exports": {
+    ".": "./src/tacobi/index.ts"
   },
   "dependencies": {
     "lodash": "^4.17.21",
