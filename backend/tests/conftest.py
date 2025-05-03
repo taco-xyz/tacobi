@@ -14,6 +14,7 @@ def testSchema():
 
     return TestSchema
 
+
 @pytest.fixture
 def mockCacheAdapter():
     mock_cache = MagicMock(spec=CacheAdapter)
