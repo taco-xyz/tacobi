@@ -2,10 +2,12 @@ from datetime import timedelta
 
 import pandas as pd
 import pandera as pa
+from pandera.typing import DataFrame
 import pytest
 from fastapi import FastAPI
 from tacobi import Tacobi
 from tacobi.schema import DatasetTypeEnum
+from tests.conftest import TestSchema  # Import TestSchema from conftest instead
 
 
 def test_tacobi_initialization():
@@ -56,6 +58,7 @@ def test_get_schema(testSchema, testDecoratedDatasetFactory):
     schema = tacobi.get_schema()
     assert len(schema.datasets) == 1
     assert schema.datasets[0].id == "test_dataset"
+
 
 def test_dataset_with_cache(testSchema, testDecoratedDatasetFactory, mockCacheAdapter):
     """Test that dataset caching works."""
@@ -112,7 +115,7 @@ def test_cache_miss_then_hit(testSchema, mockCacheAdapter):
     @tacobi.dataset(
         "/test-cache-miss", DatasetTypeEnum.TABULAR, cache_validity=timedelta(minutes=5)
     )
-    def dataset_function() -> pd.DataFrame:
+    def dataset_function() -> DataFrame[TestSchema]:
         return original_df
 
     # First call should check cache, miss, and set the cache
@@ -138,7 +141,7 @@ def test_no_cache_when_ttl_none(testSchema, mockCacheAdapter):
     tacobi = Tacobi(cache_adapter=mockCacheAdapter)
 
     @tacobi.dataset("/test-no-cache", DatasetTypeEnum.TABULAR, cache_validity=None)
-    def dataset_function() -> pd.DataFrame:
+    def dataset_function() -> DataFrame[TestSchema]:
         return pd.DataFrame({"column1": [1, 2, 3]})
 
     # Call the function
@@ -158,7 +161,7 @@ def test_cache_ttl_passed_correctly(testSchema, mockCacheAdapter):
     expected_seconds = cache_validity.total_seconds()
 
     @tacobi.dataset("/test-ttl", DatasetTypeEnum.TABULAR, cache_validity=cache_validity)
-    def dataset_function() -> pd.DataFrame:
+    def dataset_function() -> DataFrame[TestSchema]:
         return pd.DataFrame({"column1": [1, 2, 3]})
 
     # Call the function (will miss and set)

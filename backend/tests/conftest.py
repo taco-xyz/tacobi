@@ -7,12 +7,14 @@ from tacobi import DatasetTypeEnum
 from tacobi.caching import CacheAdapter
 
 
+class TestSchema(pa.DataFrameModel):
+    column1: int  # type: ignore
+
+
 @pytest.fixture
 def testSchema():
-    class TestSchema(pa.DataFrameModel):
-        column1: int  # type: ignore
-
     return TestSchema
+
 
 @pytest.fixture
 def mockCacheAdapter():

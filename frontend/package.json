@@ -1,32 +1,16 @@
 {
-  "name": "morpho",
+  "name": "@taco/tacobi",
   "version": "0.1.0",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "build": "tsc"
   },
   "dependencies": {
-    "@emotion/css": "^11.13.5",
-    "@headlessui/react": "^2.2.2",
-    "@kbox-labs/react-echarts": "^1.4.2",
-    "@tanstack/react-table": "^8.21.3",
-    "clsx": "^2.1.1",
-    "echarts": "^5.6.0",
     "lodash": "^4.17.21",
-    "lucide-react": "^0.503.0",
-    "next": "15.3.1",
     "react": "^19.1.0",
-    "react-dom": "^19.0.0",
-    "tailwind-variants": "^1.0.0"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@next/eslint-plugin-next": "^15.3.1",
-    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -36,7 +20,6 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
-    "tailwindcss": "^4",
     "typescript": "^5"
   }
 }
