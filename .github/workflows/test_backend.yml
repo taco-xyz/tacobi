@@ -1,10 +1,6 @@
 name: Backend Tests
 
 on:
-  push:
-    paths:
-      - 'backend/**'
-      - '.github/workflows/test_backend.yml'
   pull_request:
     paths:
       - 'backend/**'
