@@ -1,6 +1,6 @@
 {
   "name": "@taco-division/tacobi",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
@@ -15,7 +15,9 @@
     }
   },
   "dependencies": {
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.21"
+  },
+  "peerDependencies": {
     "react": "^19.1.0",
     "react-dom": "^19.0.0"
   },

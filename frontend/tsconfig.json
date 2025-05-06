@@ -15,7 +15,6 @@
     "incremental": true,
     "declaration": true,
     "declarationMap": true,
-    "emitDeclarationOnly": true,
     "outDir": "dist",
     "plugins": [
       {
@@ -28,5 +27,5 @@
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist", ".vscode"]
 }
