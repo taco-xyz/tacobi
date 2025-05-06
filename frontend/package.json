@@ -1,17 +1,20 @@
 {
   "name": "@taco-division/tacobi",
-  "version": "0.1.11",
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
+  "version": "0.1.13",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build:types": "tsc -p tsconfig.json --emitDeclarationOnly",
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build": "pnpm build:types && pnpm build:cjs && pnpm build:esm"
   },
   "exports": {
     ".": {
-      "require": "./dist/index.js",
-      "import":  "./dist/index.esm.js",
-      "types":   "./dist/index.d.ts"
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js",
+      "types": "./dist/index.d.ts"
     }
   },
   "dependencies": {
