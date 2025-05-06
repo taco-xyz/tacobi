@@ -1,5 +1,5 @@
 {
-  "name": "tacobi",
+  "name": "@taco-division/tacobi",
   "version": "0.1.11",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
