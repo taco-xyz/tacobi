@@ -7,12 +7,12 @@ redundant calls.
 from tacobi.streaming.data_source.cache import CacheBackend, SQLiteCache
 from tacobi.streaming.data_source.models import (
     CachedDataSource,
-    DataSourceScheduler,
+    DataSourceManager,
 )
 
 __all__ = [
     "CachedDataSource",
     "CacheBackend",
-    "DataSourceScheduler",
+    "DataSourceManager",
     "SQLiteCache",
 ]

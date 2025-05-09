@@ -16,18 +16,21 @@ class MaterializedView(BaseView, Generic[DataModelType]):
     function: Callable[[], Awaitable[DataModelType]]
     """The function to call to update the view."""
 
+    route: str | None = None
+    """The optional REST route of the view."""
+
     name: str | None = None
     """The optional name of the view."""
+
+    id: UUID = field(default_factory=uuid4)
+    """The unique identifier for the view."""
 
     _latest_data: DataModelType | None = None
     """The latest data from the view."""
 
-    _id: UUID = field(default_factory=uuid4)
-    """The unique identifier for the view."""
-
     def __str__(self) -> str:
         """Get the string representation of the view."""
-        return f"MaterializedView(name={self.name}, id={self._id})"
+        return f"MaterializedView(name={self.name}, id={self.id})"
 
     def get_latest_data(self) -> DataModelType | None:
         """Get the latest data from the view."""
@@ -39,10 +42,10 @@ class MaterializedView(BaseView, Generic[DataModelType]):
 
     def __hash__(self) -> int:
         """Hash the view."""
-        return hash(self._id)
+        return hash(self.id)
 
     def __eq__(self, other: object) -> bool:
         """Check if the view is equal to another object."""
         if not isinstance(other, MaterializedView):
             return False
-        return self._id == other._id
+        return self.id == other.id

@@ -1,5 +1,6 @@
 """Tests for the ViewManager class."""
 
+import asyncio
 from collections.abc import Awaitable, Callable
 
 import pytest
@@ -54,10 +55,8 @@ def mock_view(mock_view_function: Callable[[], Awaitable[MockDataModel]]) -> Vie
 def mock_materialized_view_function() -> Callable[[], Awaitable[MockDataModel]]:
     """Fixture providing a mock materialized view function."""
 
-    async def _mock_function(prev_data: MockDataModel | None) -> MockDataModel:
-        if prev_data is None:
-            return MockDataModel(value=42)
-        return MockDataModel(value=prev_data.value + 1)
+    async def _mock_function() -> MockDataModel:
+        return MockDataModel(value=42)
 
     return _mock_function
 
@@ -67,7 +66,7 @@ def mock_materialized_view(
     mock_materialized_view_function: Callable[
         [MockDataModel | None], Awaitable[MockDataModel]
     ],
-) -> MaterializedView:
+) -> MaterializedView[MockDataModel]:
     """Fixture providing a mock materialized view."""
     return MaterializedView(function=mock_materialized_view_function, dependencies=[])
 
@@ -85,9 +84,11 @@ def test_get_sorted_views_with_dependencies(
 ) -> None:
     """Test getting sorted views with dependencies."""
     view1 = View(name="view1", function=mock_view_function, dependencies=[])
-    view2 = View(name="view2", function=mock_view_function, dependencies=[view1])
-    view3 = View(name="view3", function=mock_view_function, dependencies=[view1])
-    view4 = View(name="view4", function=mock_view_function, dependencies=[view2, view3])
+    view2 = View(name="view2", function=mock_view_function, dependencies=[view1.id])
+    view3 = View(name="view3", function=mock_view_function, dependencies=[view1.id])
+    view4 = View(
+        name="view4", function=mock_view_function, dependencies=[view2.id, view3.id]
+    )
 
     view_manager.add_view(view1)
     view_manager.add_view(view2)
@@ -96,9 +97,6 @@ def test_get_sorted_views_with_dependencies(
 
     sorted_views = view_manager._get_sorted_views()
     assert len(sorted_views) == 4  # noqa: PLR2004
-
-    for view in sorted_views:
-        print(str(view))
 
     # Check that view1 is first
     assert sorted_views[0] == view1
@@ -119,8 +117,8 @@ def test_get_sorted_views_circular_dependency(
 ) -> None:
     """Test that circular dependencies are detected."""
     view1 = View(function=mock_view_function, dependencies=[])
-    view2 = View(function=mock_view_function, dependencies=[view1])
-    view1.dependencies = [view2]
+    view2 = View(function=mock_view_function, dependencies=[view1.id])
+    view1.dependencies = [view2.id]
 
     view_manager.add_view(view1)
     view_manager.add_view(view2)
@@ -146,14 +144,14 @@ async def test_recompute_materialized_views_chain(
         mv1_data = mv1.get_latest_data()
         return MockDataModel2(value=mv1_data.value, derived_value=mv1_data.value * 2)
 
-    mv2 = MaterializedView(name="view2", function=mock_view2, dependencies=[mv1])
+    mv2 = MaterializedView(name="view2", function=mock_view2, dependencies=[mv1.id])
 
     async def mock_view3() -> MockDataModel3:
         mv2_data = mv2.get_latest_data()
         return MockDataModel3(final_value=mv2_data.derived_value + 10)
 
     # Create the views
-    v3 = View(name="view3", function=mock_view3, dependencies=[mv2])
+    v3 = View(name="view3", function=mock_view3, dependencies=[mv2.id])
 
     # Add views to manager
     view_manager.add_materialized_view(mv1)
@@ -185,7 +183,14 @@ async def test_recompute_materialized_views_chain(
 
 
 @pytest.mark.asyncio
-async def test_start(view_manager: ViewManager) -> None:
+async def test_start(
+    view_manager: ViewManager, mock_materialized_view: MaterializedView[MockDataModel]
+) -> None:
     """Test starting the view manager."""
+    view_manager.add_materialized_view(mock_materialized_view)
     view_manager.start()
     assert view_manager._recompute_scheduler.running
+
+    await asyncio.sleep(1.5)
+
+    assert mock_materialized_view.get_latest_data().value == 42  # noqa: PLR2004

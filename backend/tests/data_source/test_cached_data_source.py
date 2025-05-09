@@ -1,4 +1,4 @@
-"""Tests for the CachedDataSource and DataSourceScheduler classes."""
+"""Tests for the CachedDataSource and DataSourceManager classes."""
 
 import asyncio
 from datetime import UTC, datetime
@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from tacobi.streaming.data_source.cache import CacheBackend, SQLiteCache
 from tacobi.streaming.data_source.encode import PolarsEncoder, PydanticEncoder
-from tacobi.streaming.data_source.models import CachedDataSource, DataSourceScheduler
+from tacobi.streaming.data_source.models import CachedDataSource, DataSourceManager
 
 
 # Test Models
@@ -50,9 +50,9 @@ def cache() -> CacheBackend:
 
 
 @pytest.fixture
-def scheduler(cache: CacheBackend) -> DataSourceScheduler:
-    """Create a test scheduler instance."""
-    return DataSourceScheduler(cache_backend=cache)
+def data_source_manager(cache: CacheBackend) -> DataSourceManager:
+    """Create a test data source manager instance."""
+    return DataSourceManager(cache_backend=cache)
 
 
 # Data Source
@@ -151,10 +151,10 @@ async def test_cached_data_source_get_latest_data(cache: CacheBackend) -> None:
 
 
 @pytest.mark.asyncio
-async def test_scheduler_add_data_source(
-    scheduler: DataSourceScheduler, cache: CacheBackend
+async def test_data_source_manager_add_data_source(
+    data_source_manager: DataSourceManager, cache: CacheBackend
 ) -> None:
-    """Test DataSourceScheduler add_data_source functionality."""
+    """Test DataSourceManager add_data_source functionality."""
     data_source = CachedDataSource(
         name="test_scheduler",
         function=polars_source_function,
@@ -162,16 +162,16 @@ async def test_scheduler_add_data_source(
     )
     data_source.set_cache_backend(cache)
 
-    scheduler.add_data_source(data_source)
-    assert len(scheduler._data_sources) == 1
-    assert scheduler._data_sources[0] == data_source
+    data_source_manager.add_data_source(data_source)
+    assert len(data_source_manager._data_sources) == 1
+    assert data_source_manager._data_sources[0] == data_source
 
 
 @pytest.mark.asyncio
-async def test_scheduler_start(
-    scheduler: DataSourceScheduler, cache: CacheBackend
+async def test_data_source_manager_start(
+    data_source_manager: DataSourceManager, cache: CacheBackend
 ) -> None:
-    """Test DataSourceScheduler start functionality."""
+    """Test DataSourceManager start functionality."""
     data_source = CachedDataSource(
         name="test_start",
         function=polars_source_function,
@@ -179,8 +179,8 @@ async def test_scheduler_start(
     )
     data_source.set_cache_backend(cache)
 
-    scheduler.add_data_source(data_source)
-    await scheduler.start()
+    data_source_manager.add_data_source(data_source)
+    await data_source_manager.start()
 
     # Wait for first update
     await asyncio.sleep(1.1)
@@ -192,24 +192,28 @@ async def test_scheduler_start(
 
 
 @pytest.mark.asyncio
-async def test_scheduler_multiple_data_sources(scheduler: DataSourceScheduler) -> None:
-    """Test DataSourceScheduler with multiple data sources."""
+async def test_data_source_manager_multiple_data_sources(
+    data_source_manager: DataSourceManager, cache: CacheBackend
+) -> None:
+    """Test DataSourceManager with multiple data sources."""
     polars_source = CachedDataSource(
         name="test_polars",
         function=polars_source_function,
         trigger=IntervalTrigger(seconds=1),
     )
+    polars_source.set_cache_backend(cache)
 
     pydantic_source = CachedDataSource(
         name="test_pydantic",
         function=pydantic_source_function,
         trigger=IntervalTrigger(seconds=1),
     )
+    pydantic_source.set_cache_backend(cache)
 
-    scheduler.add_data_source(polars_source)
-    scheduler.add_data_source(pydantic_source)
+    data_source_manager.add_data_source(polars_source)
+    data_source_manager.add_data_source(pydantic_source)
 
-    await scheduler.start()
+    await data_source_manager.start()
     await asyncio.sleep(1.1)
 
     # Verify both sources were updated

@@ -86,8 +86,8 @@ class CachedDataSource(Generic[DataModelType]):
 
 
 @dataclass
-class DataSourceScheduler:
-    """A scheduler that can schedule tasks to be executed at a specific time."""
+class DataSourceManager:
+    """A manager that can schedule data sources to be updated at a specific time."""
 
     cache_backend: CacheBackend = field(default_factory=SQLiteCache)
     """ The cache backend that is used to store the data. """

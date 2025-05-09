@@ -13,6 +13,7 @@ dependencies = [
     "pydantic>=2.11.4",
     "pytest-asyncio>=0.26.0",
     "requests>=2.32.3",
+    "rustworkx>=0.16.0",
     "uvicorn>=0.34.2",
 ]
 

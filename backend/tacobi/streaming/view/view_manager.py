@@ -3,8 +3,12 @@
 from collections import defaultdict
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
+if TYPE_CHECKING:
+    from uuid import UUID
+
+import rustworkx as rx
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.base import BaseTrigger
 
@@ -49,36 +53,25 @@ class ViewManager:
         # Combine all views
         all_views = self._views + self._materialized_views
 
-        # Build dependency graph
-        graph: dict[BaseView, set[BaseView]] = defaultdict(set)
-        in_degree: dict[BaseView, int] = defaultdict(int)
+        # Create a directed graph
+        graph = rx.PyDiGraph()
 
-        # Build graph and count dependencies
+        # Add nodes and store mapping of UUID to node index
+        node_map = {view.id: graph.add_node(view) for view in all_views}
+
+        # Add edges for dependencies
         for view in all_views:
             if view.dependencies:
                 for dep_view in view.dependencies:
-                    graph[dep_view].add(view)
-                    in_degree[view] += 1
+                    graph.add_edge(node_map[dep_view], node_map[view.id], None)
 
-        # Topological sort using Kahn's algorithm
-        result = []
-        queue = [v for v in all_views if in_degree[v] == 0]
-
-        while queue:
-            view = queue.pop(0)
-            result.append(view)
-
-            for dependent in graph[view]:
-                in_degree[dependent] -= 1
-                if in_degree[dependent] == 0:
-                    queue.append(dependent)
-
-        # Check for cycles
-        if len(result) != len(all_views):
+        try:
+            # Get topological sort
+            sorted_indices = rx.topological_sort(graph)
+            return [graph[node_idx] for node_idx in sorted_indices]
+        except rx.DAGHasCycle as e:
             msg = "Circular dependency detected in views"
-            raise ValueError(msg)
-
-        return result
+            raise ValueError(msg) from e
 
     async def _recompute_materialized_views(self) -> None:
         """Recompute all materialized views in dependency order."""
