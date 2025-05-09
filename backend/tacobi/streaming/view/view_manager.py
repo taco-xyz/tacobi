@@ -1,12 +1,8 @@
 """The main app class for TacoBI."""
 
-from collections import defaultdict
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, TypeVar
-
-if TYPE_CHECKING:
-    from uuid import UUID
+from typing import TypeVar
 
 import rustworkx as rx
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
