@@ -9,6 +9,3 @@ class BaseView:
 
     dependencies: list["BaseView"] | None
     """The dependencies of the view used for topological sorting."""
-
-    route: str | None
-    """The route to expose the view via REST API."""
