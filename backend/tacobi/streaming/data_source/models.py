@@ -1,10 +1,8 @@
 """Models for data sources."""
 
-import io
-from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Generic, TypeVar
+from typing import Generic
 
 import polars as pl
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -12,64 +10,8 @@ from apscheduler.triggers.base import BaseTrigger
 from pydantic import BaseModel
 
 from tacobi.streaming.data_model.models import DataModelType
-from tacobi.streaming.data_source.cache import (
-    CacheBackend,
-    EncodedDataType,
-    SQLiteCache,
-)
-
-# Encoding
-
-
-class Encoder(ABC):
-    """An encoder that can encode and decode data."""
-
-    @abstractmethod
-    def encode(self, data: DataModelType) -> EncodedDataType:
-        """Encode the data."""
-        ...
-
-    @abstractmethod
-    def decode(self, data: EncodedDataType) -> DataModelType:
-        """Decode the data."""
-        ...
-
-
-BaseModelType = TypeVar("BaseModelType", bound=BaseModel)
-
-
-@dataclass
-class PydanticEncoder(Encoder):
-    """An encoder that can encode and decode Pydantic models."""
-
-    base_model: BaseModelType
-    """ The base model that is used to encode and decode the data. """
-
-    def encode(self, data: DataModelType) -> EncodedDataType:
-        """Encode the data."""
-        return data.model_dump_json().encode("utf-8")
-
-    def decode(self, data: EncodedDataType) -> DataModelType:
-        """Decode the data."""
-        return self.base_model.model_validate_json(data.decode("utf-8"))
-
-
-@dataclass
-class PolarsEncoder(Encoder):
-    """An encoder that can encode and decode Polars data."""
-
-    def encode(self, data: pl.LazyFrame) -> EncodedDataType:
-        """Encode the data."""
-        buffer = io.BytesIO()
-        data.sink_parquet(buffer)
-        return buffer.getvalue()
-
-    def decode(self, data: EncodedDataType) -> pl.LazyFrame:
-        """Decode the data."""
-        return pl.scan_parquet(io.BytesIO(data))
-
-
-# Data Source
+from tacobi.streaming.data_source.cache import CacheBackend, SQLiteCache
+from tacobi.streaming.data_source.encode import Encoder, PolarsEncoder, PydanticEncoder
 
 
 @dataclass
@@ -91,30 +33,53 @@ class CachedDataSource(Generic[DataModelType]):
     _cached_data: DataModelType | None = None
     """ Latest cached data, None if no data has been cached yet. """
 
+    _cache_backend: CacheBackend | None = None
+    """ The cache backend that is used to store the data. """
+
     def __post_init__(self) -> None:
         """Based on the type hints for the function, determine the encoder."""
-        if self.function.__annotations__["return"] == pl.LazyFrame:
+        return_type = self.function.__annotations__["return"]
+        if issubclass(return_type, pl.LazyFrame) or return_type == pl.LazyFrame:
             self._encoder = PolarsEncoder()
-        elif self.function.__annotations__["return"] == BaseModel:
-            self._encoder = PydanticEncoder(
-                base_model=self.function.__annotations__["return"]
-            )
+        elif issubclass(return_type, BaseModel):
+            self._encoder = PydanticEncoder(base_model=return_type)
+        else:
+            msg = f"No encoder found for type {return_type}"
+            raise RuntimeError(msg)
 
-    async def update(self, cache_backend: CacheBackend) -> None:
+    def set_cache_backend(self, cache_backend: CacheBackend) -> None:
+        """Set the cache backend that is used to store the data."""
+        self._cache_backend = cache_backend
+
+    async def update(self) -> None:
         """Call the fetch function and update the cache accordingly."""
+        if not self._cache_backend:
+            msg = "Cache backend not set"
+            raise RuntimeError(msg)
+
         self._cached_data = await self.function(self._cached_data)
-        await cache_backend.set(
+
+        await self._cache_backend.set(
             key=self.name, value=self._encoder.encode(self._cached_data)
         )
 
-    async def load(self, cache_backend: CacheBackend) -> None:
+    async def load(self) -> None:
         """Load the data from the cache backend."""
-        self._cached_data = await cache_backend.get(key=self.name)
+        if not self._cache_backend:
+            msg = "Cache backend not set"
+            raise RuntimeError(msg)
+
+        cache_data = await self._cache_backend.get(key=self.name)
+        if cache_data is None:
+            return
+        self._cached_data = self._encoder.decode(cache_data)
 
     def get_latest_data(self) -> DataModelType | None:
         """Get the latest data from the data source."""
         data = self._cached_data
-        return self._encoder.decode(data) if data else None
+        if data is None:
+            return None
+        return data
 
 
 # Scheduler
@@ -124,14 +89,16 @@ class CachedDataSource(Generic[DataModelType]):
 class DataSourceScheduler:
     """A scheduler that can schedule tasks to be executed at a specific time."""
 
+    cache_backend: CacheBackend = field(default_factory=SQLiteCache)
+    """ The cache backend that is used to store the data. """
+
     _data_sources: list[CachedDataSource] = field(default_factory=list)
     """ The data sources that are scheduled to be updated. """
 
     _scheduler: AsyncIOScheduler = field(default_factory=AsyncIOScheduler)
     """ The scheduler that is used to schedule the tasks. """
 
-    _cache_backend: CacheBackend = field(default_factory=SQLiteCache)
-    """ The cache backend that is used to store the data. """
+    # Data Source Scheduling
 
     def _schedule_data_source(self, data_source: CachedDataSource) -> None:
         """Schedule a data source to be updated according to its trigger.
@@ -141,7 +108,7 @@ class DataSourceScheduler:
         """
 
         async def update_job() -> None:
-            await data_source.update(self._cache_backend)
+            await data_source.update()
 
         self._scheduler.add_job(
             update_job,
@@ -150,16 +117,16 @@ class DataSourceScheduler:
             replace_existing=True,
         )
 
-    async def restore_cache(self) -> None:
-        """Restore the cache from the cache backend."""
-        for data_source in self._data_sources:
-            await data_source.load(self._cache_backend)
-
     def add_data_source(self, data_source: CachedDataSource) -> None:
         """Add a data source to the scheduler."""
+        data_source.set_cache_backend(self.cache_backend)
         self._data_sources.append(data_source)
         self._schedule_data_source(data_source)
 
-    def start(self) -> None:
+    # Lifecycle
+
+    async def start(self) -> None:
         """Start the scheduler."""
+        for data_source in self._data_sources:
+            await data_source.load()
         self._scheduler.start()

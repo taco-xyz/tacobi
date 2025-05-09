@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-EncodedDataType = bytes
+from tacobi.streaming.data_source.encode import EncodedDataType
 
 
 @dataclass
@@ -23,7 +23,7 @@ class CacheBackend(ABC):
         ...
 
     @abstractmethod
-    async def set(self, key: str, data: EncodedDataType) -> None:
+    async def set(self, key: str, value: EncodedDataType) -> None:
         """Set the data for the given key.
 
         ### Arguments

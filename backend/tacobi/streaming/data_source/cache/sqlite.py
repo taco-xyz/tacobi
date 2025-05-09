@@ -4,7 +4,8 @@ import sqlite3 as sql
 from dataclasses import dataclass
 from pathlib import Path
 
-from tacobi.streaming.data_source.cache.base import CacheBackend, EncodedDataType
+from tacobi.streaming.data_source.cache import CacheBackend
+from tacobi.streaming.data_source.encode import EncodedDataType
 
 
 @dataclass
@@ -60,7 +61,7 @@ class SQLiteCache(CacheBackend):
         result = cursor.fetchone()
         return result[0] if result else None
 
-    async def set(self, key: str, data: EncodedDataType) -> None:
+    async def set(self, key: str, value: EncodedDataType) -> None:
         """Set the data for the given key.
 
         ### Arguments
@@ -78,7 +79,7 @@ class SQLiteCache(CacheBackend):
             VALUES (?, ?)
             ON CONFLICT(key) DO UPDATE SET data = excluded.data
         """,
-            (key, data),
+            (key, value),
         )
         self._conn.commit()
 

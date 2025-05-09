@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from tacobi.streaming.data_source.cache.sqlite import SQLiteCache
+from tacobi.streaming.data_source.cache import SQLiteCache
 
 
 @pytest.fixture
@@ -29,7 +29,7 @@ async def test_cache_initialization(cache: SQLiteCache) -> None:
     - Checks if the cache table is created
     """
     assert Path.exists(cache.db_path)
-    assert cache._conn is not None  # noqa: SLF001
+    assert cache._conn is not None
 
 
 @pytest.mark.asyncio

@@ -42,7 +42,7 @@ line-length = 88  # Adjust as needed
 
 [tool.ruff.lint]
 select = ["ALL"]  # Enable all linting rules
-ignore = ["RUF022", "COM812", "INP001", "S101"]
+ignore = ["RUF022", "COM812", "INP001", "S101", "SLF001"]
 
 [tool.ruff.format]
 quote-style = "double"           # Options: "single" or "double"

@@ -4,7 +4,7 @@ import polars as pl
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from tacobi.streaming.data_source.models import PolarsEncoder, PydanticEncoder
+from tacobi.streaming.data_source.encode import PolarsEncoder, PydanticEncoder
 
 
 class TestData(BaseModel):
