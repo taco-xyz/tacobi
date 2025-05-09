@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 import polars as pl
 
-from tacobi.streaming.data_source.encode import EncodedDataType, Encoder
+from tacobi.data_source.encode import EncodedDataType, Encoder
 
 
 @dataclass

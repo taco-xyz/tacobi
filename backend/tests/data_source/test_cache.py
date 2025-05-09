@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from tacobi.streaming.data_source.cache import SQLiteCache
+from tacobi.data_source.cache import SQLiteCache
 
 
 @pytest.fixture

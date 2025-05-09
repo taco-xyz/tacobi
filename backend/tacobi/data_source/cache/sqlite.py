@@ -4,8 +4,8 @@ import sqlite3 as sql
 from dataclasses import dataclass
 from pathlib import Path
 
-from tacobi.streaming.data_source.cache import CacheBackend
-from tacobi.streaming.data_source.encode import EncodedDataType
+from tacobi.data_source.cache import CacheBackend
+from tacobi.data_source.encode import EncodedDataType
 
 
 @dataclass

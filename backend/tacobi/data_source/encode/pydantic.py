@@ -5,8 +5,8 @@ from typing import TypeVar
 
 from pydantic import BaseModel
 
-from tacobi.streaming.data_model.models import DataModelType
-from tacobi.streaming.data_source.encode import EncodedDataType, Encoder
+from tacobi.data_model.models import DataModelType
+from tacobi.data_source.encode import EncodedDataType, Encoder
 
 BaseModelType = TypeVar("BaseModelType", bound=BaseModel)
 

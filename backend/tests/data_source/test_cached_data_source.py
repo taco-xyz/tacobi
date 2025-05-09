@@ -8,9 +8,9 @@ import pytest
 from apscheduler.triggers.interval import IntervalTrigger
 from pydantic import BaseModel
 
-from tacobi.streaming.data_source.cache import CacheBackend, SQLiteCache
-from tacobi.streaming.data_source.encode import PolarsEncoder, PydanticEncoder
-from tacobi.streaming.data_source.models import CachedDataSource, DataSourceManager
+from tacobi.data_source.cache import CacheBackend, SQLiteCache
+from tacobi.data_source.encode import PolarsEncoder, PydanticEncoder
+from tacobi.data_source.models import CachedDataSource, DataSourceManager
 
 
 # Test Models

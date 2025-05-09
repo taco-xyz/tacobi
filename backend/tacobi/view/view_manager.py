@@ -8,8 +8,8 @@ import rustworkx as rx
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.base import BaseTrigger
 
-from tacobi.streaming.data_model.models import DataModelType
-from tacobi.streaming.view import BaseView, MaterializedView, View
+from tacobi.data_model.models import DataModelType
+from tacobi.view import BaseView, MaterializedView, View
 
 T = TypeVar("T", bound=Callable[[DataModelType], Awaitable[DataModelType]])
 

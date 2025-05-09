@@ -7,7 +7,7 @@ import pytest
 from apscheduler.triggers.interval import IntervalTrigger
 from pydantic import BaseModel
 
-from tacobi.streaming.view import MaterializedView, View, ViewManager
+from tacobi.view import MaterializedView, View, ViewManager
 
 
 class MockDataModel(BaseModel):

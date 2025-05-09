@@ -5,7 +5,7 @@ from collections.abc import Awaitable, Callable
 import pytest
 from pydantic import BaseModel
 
-from tacobi.streaming.view import MaterializedView, View
+from tacobi.view import MaterializedView, View
 
 
 class MockDataModel(BaseModel):

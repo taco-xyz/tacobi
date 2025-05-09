@@ -7,9 +7,9 @@ from uuid import UUID
 
 from apscheduler.triggers.base import BaseTrigger
 
-from tacobi.streaming.data_model.models import DataModelType
-from tacobi.streaming.data_source import CachedDataSource, DataSourceManager
-from tacobi.streaming.view import MaterializedView, View, ViewManager
+from tacobi.data_model.models import DataModelType
+from tacobi.data_source import CachedDataSource, DataSourceManager
+from tacobi.view import MaterializedView, View, ViewManager
 
 T = TypeVar("T", bound=Callable[[DataModelType], Awaitable[DataModelType]])
 

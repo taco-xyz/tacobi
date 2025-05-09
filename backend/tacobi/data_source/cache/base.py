@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from tacobi.streaming.data_source.encode import EncodedDataType
+from tacobi.data_source.encode import EncodedDataType
 
 
 @dataclass

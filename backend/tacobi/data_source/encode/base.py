@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 
-from tacobi.streaming.data_model.models import DataModelType
+from tacobi.data_model.models import DataModelType
 
 EncodedDataType = bytes
 

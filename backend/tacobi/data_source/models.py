@@ -9,9 +9,9 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.base import BaseTrigger
 from pydantic import BaseModel
 
-from tacobi.streaming.data_model.models import DataModelType
-from tacobi.streaming.data_source.cache import CacheBackend, SQLiteCache
-from tacobi.streaming.data_source.encode import Encoder, PolarsEncoder, PydanticEncoder
+from tacobi.data_model.models import DataModelType
+from tacobi.data_source.cache import CacheBackend, SQLiteCache
+from tacobi.data_source.encode import Encoder, PolarsEncoder, PydanticEncoder
 
 
 @dataclass

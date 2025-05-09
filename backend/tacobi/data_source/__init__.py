@@ -4,8 +4,8 @@ They can be scheduled to be called at a specific time and can be cached to avoid
 redundant calls.
 """
 
-from tacobi.streaming.data_source.cache import CacheBackend, SQLiteCache
-from tacobi.streaming.data_source.models import (
+from tacobi.data_source.cache import CacheBackend, SQLiteCache
+from tacobi.data_source.models import (
     CachedDataSource,
     DataSourceManager,
 )
