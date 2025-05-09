@@ -53,17 +53,12 @@ class ViewManager:
         graph: dict[BaseView, set[BaseView]] = defaultdict(set)
         in_degree: dict[BaseView, int] = defaultdict(int)
 
-        # Map function to view for dependency lookup
-        func_to_view = {v.function: v for v in all_views}
-
         # Build graph and count dependencies
         for view in all_views:
             if view.dependencies:
-                for dep_func in view.dependencies:
-                    if dep_func in func_to_view:
-                        dep_view = func_to_view[dep_func]
-                        graph[dep_view].add(view)
-                        in_degree[view] += 1
+                for dep_view in view.dependencies:
+                    graph[dep_view].add(view)
+                    in_degree[view] += 1
 
         # Topological sort using Kahn's algorithm
         result = []
