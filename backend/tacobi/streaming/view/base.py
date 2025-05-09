@@ -1,0 +1,14 @@
+"""Base view class."""
+
+from dataclasses import dataclass
+
+
+@dataclass
+class BaseView:
+    """Base view class."""
+
+    dependencies: list["BaseView"] | None
+    """The dependencies of the view used for topological sorting."""
+
+    route: str | None
+    """The route to expose the view via REST API."""

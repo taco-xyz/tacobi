@@ -5,12 +5,15 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "apscheduler>=3.11.0",
     "diskcache>=5.6.3",
     "fastapi>=0.115.12",
-    "pandera>=0.23.1",
-    "pydantic>=2.11.1",
+    "pandera[polars]>=0.23.1",
+    "polars>=1.29.0",
+    "pydantic>=2.11.4",
+    "pytest-asyncio>=0.26.0",
     "requests>=2.32.3",
-    "uvicorn>=0.34.0",
+    "uvicorn>=0.34.2",
 ]
 
 [build-system]
@@ -33,3 +36,15 @@ dev = [
     "requests>=2.32.3",
     "httpx>=0.28.1",
 ]
+
+[tool.ruff]
+line-length = 88  # Adjust as needed
+
+[tool.ruff.lint]
+select = ["ALL"]  # Enable all linting rules
+ignore = ["RUF022", "COM812", "INP001", "S101"]
+
+[tool.ruff.format]
+quote-style = "double"           # Options: "single" or "double"
+indent-style = "space"           # Options: "space" or "tab"
+docstring-code-format = true     # Format code examples in docstrings

@@ -18,23 +18,23 @@
     }
   },
   "dependencies": {
-    "lodash": "^4.17.21"
+    "lodash": "^4"
   },
   "peerDependencies": {
-    "react": "^19.1.0",
-    "react-dom": "^19.0.0"
+    "react": "^19",
+    "react-dom": "^19"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@types/node": "^20",
+    "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.3.1",
-    "eslint-config-prettier": "^10.1.2",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "prettier": "^3.5.3",
-    "prettier-plugin-tailwindcss": "^0.6.11",
+    "eslint-config-next": "15",
+    "eslint-config-prettier": "^10",
+    "eslint-plugin-react-hooks": "^5",
+    "prettier": "^3",
+    "prettier-plugin-tailwindcss": "^0.6",
     "typescript": "^5"
   }
 }
