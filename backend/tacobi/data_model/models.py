@@ -1,13 +1,15 @@
 """Models for data models."""
 
+from datetime import datetime
 from typing import TypeVar
 
-from polars import LazyFrame
+from pandera.typing.common import DataFrameBase
 from pydantic import BaseModel
 
-DataModel = LazyFrame | BaseModel
-"""A valid data model can either be a Polars `LazyFrame` or a Pydantic
-`BaseModel`. Views and data sources can return either of these types.
+
+DataModel = DataFrameBase | BaseModel
+"""A valid data model can either be a Pandera Polars `DataFrameModel` or a
+Pydantic `BaseModel`. Views and data sources can return either of these types.
 """
 
 DataModelType = TypeVar("DataModelType", bound=DataModel)

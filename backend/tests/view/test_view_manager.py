@@ -5,6 +5,7 @@ from collections.abc import Awaitable, Callable
 
 import pytest
 from apscheduler.triggers.interval import IntervalTrigger
+from fastapi import FastAPI
 from pydantic import BaseModel
 
 from tacobi.view import MaterializedView, View, ViewManager
@@ -72,10 +73,10 @@ def mock_materialized_view(
 
 
 @pytest.fixture
-def view_manager() -> ViewManager:
+def view_manager(fastapi_app: FastAPI) -> ViewManager:
     """Fixture providing a ViewManager instance."""
     trigger = IntervalTrigger(seconds=1)
-    return ViewManager(recompute_trigger=trigger)
+    return ViewManager(recompute_trigger=trigger, fastapi_app=fastapi_app)
 
 
 def test_get_sorted_views_with_dependencies(

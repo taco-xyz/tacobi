@@ -18,11 +18,11 @@ T = TypeVar("T", bound=Callable[[DataModelType], Awaitable[DataModelType]])
 class TacoBIApp:
     """The main app class for TacoBI."""
 
-    _data_source_manager: DataSourceManager = field(default_factory=DataSourceManager)
-    """ Manager used for scheduling data sources."""
-
-    _view_manager: ViewManager = field(default_factory=ViewManager)
+    view_manager: ViewManager
     """ Manager used for scheduling views."""
+
+    data_source_manager: DataSourceManager = field(default_factory=DataSourceManager)
+    """ Manager used for scheduling data sources."""
 
     _view_function_ids: dict[Callable, UUID] = field(default_factory=dict)
     """ A dictionary of view functions. """
@@ -53,7 +53,7 @@ class TacoBIApp:
             func: Callable[[DataModelType | None], Awaitable[DataModelType]],
         ) -> Callable[[], DataModelType | None]:
             data_source = CachedDataSource(name=name, function=func, trigger=trigger)
-            self._data_source_manager.add_data_source(data_source)
+            self.data_source_manager.add_data_source(data_source)
 
             return data_source.get_latest_data
 
@@ -63,12 +63,14 @@ class TacoBIApp:
 
     def view(
         self,
+        name: str,
         route: str | None = None,
         dependencies: list[Callable] | None = None,
     ) -> Callable[[T], T]:
         """Register a view.
 
         ### Arguments:
+        - name: The name of the view.
         - route: The route of the view.
         - dependencies: The dependencies of the view.
 
@@ -80,19 +82,24 @@ class TacoBIApp:
             func: Callable[[T], Awaitable[DataModelType]],
         ) -> Callable[[T], Awaitable[DataModelType]]:
             # Get the dependencies
-            dep_ids = (
-                [self._view_function_ids[dep] for dep in dependencies]
-                if dependencies
-                else []
-            )
+            try:
+                dep_ids = (
+                    [self._view_function_ids[dep] for dep in dependencies]
+                    if dependencies
+                    else []
+                )
+            except KeyError as e:
+                msg = f"Dependency {e} not found"
+                raise ValueError(msg) from e
 
             # Add the view to the view manager
             view = View(
+                name=name,
                 function=func,
                 route=route,
                 dependencies=dep_ids,
             )
-            self._view_manager.add_view(view)
+            self.view_manager.add_view(view)
 
             # Register the view function in the view manager
             self._view_function_ids[func] = view.id
@@ -102,6 +109,7 @@ class TacoBIApp:
 
     def materialized_view(
         self,
+        name: str,
         route: str | None = None,
         dependencies: list[Callable] | None = None,
     ) -> Callable[
@@ -124,19 +132,24 @@ class TacoBIApp:
             func: Callable[[DataModelType | None], Awaitable[DataModelType]],
         ) -> Callable[[], DataModelType | None]:
             # Get the dependencies
-            dep_ids = (
-                [self._view_function_ids[dep] for dep in dependencies]
-                if dependencies
-                else []
-            )
+            try:
+                dep_ids = (
+                    [self._view_function_ids[dep] for dep in dependencies]
+                    if dependencies
+                    else []
+                )
+            except KeyError as e:
+                msg = f"Dependency {e} not found"
+                raise ValueError(msg) from e
 
             # Add the view to the view manager
             view = MaterializedView(
+                name=name,
                 function=func,
                 route=route,
                 dependencies=dep_ids,
             )
-            self._view_manager.add_materialized_view(view)
+            self.view_manager.add_materialized_view(view)
 
             # Register the view function in the view manager
             self._view_function_ids[func] = view.id
@@ -153,5 +166,10 @@ class TacoBIApp:
 
     async def start(self) -> None:
         """Start the recomputation of datasets and materialized views."""
-        await self._data_source_manager.start()
-        self._view_manager.start()
+        await self.data_source_manager.start()
+        self.view_manager.start()
+
+    async def stop(self) -> None:
+        """Stop the recomputation of datasets and materialized views."""
+        await self.data_source_manager.stop()
+        self.view_manager.stop()

@@ -7,9 +7,11 @@ from typing import TypeVar
 import rustworkx as rx
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.base import BaseTrigger
+from fastapi import FastAPI
 
 from tacobi.data_model.models import DataModelType
 from tacobi.view import BaseView, MaterializedView, View
+from tacobi.view.dataset_schema import Schema
 
 T = TypeVar("T", bound=Callable[[DataModelType], Awaitable[DataModelType]])
 
@@ -20,6 +22,9 @@ class ViewManager:
 
     recompute_trigger: BaseTrigger
     """ The trigger that will be used to recompute the materialized views. """
+
+    fastapi_app: FastAPI
+    """ The FastAPI app that will be used to serve the views. """
 
     _recompute_scheduler: AsyncIOScheduler = field(default_factory=AsyncIOScheduler)
     """ The scheduler that will be used to recompute the materialized views. """
@@ -35,10 +40,14 @@ class ViewManager:
     def add_view(self, view: View) -> None:
         """Add a view to the app."""
         self._views.append(view)
+        if view.route:
+            self._attach_view_to_fastapi(view)
 
     def add_materialized_view(self, view: MaterializedView) -> None:
         """Add a materialized view to the app."""
         self._materialized_views.append(view)
+        if view.route:
+            self._attach_materialized_view_to_fastapi(view)
 
     def _get_sorted_views(self) -> list[BaseView]:
         """Get all views sorted by dependency order.
@@ -75,7 +84,10 @@ class ViewManager:
             v for v in self._get_sorted_views() if isinstance(v, MaterializedView)
         ]
 
-        for view in materialized_views:
+        print(f"Recomputing {len(materialized_views)} materialized views:")
+
+        for i, view in enumerate(materialized_views):
+            print(f"{i + 1}. Recomputing {view.name}...")
             await view.recompute_latest_data()
 
     # Lifecycle
@@ -86,4 +98,45 @@ class ViewManager:
             self._recompute_materialized_views,
             trigger=self.recompute_trigger,
         )
+        print("Starting scheduler")
         self._recompute_scheduler.start()
+
+    def stop(self) -> None:
+        """Stop the recomputation of materialized views."""
+        self._recompute_scheduler.shutdown()
+
+    # REST API
+
+    def _attach_materialized_view_to_fastapi(
+        self,
+        view: MaterializedView,
+    ) -> None:
+        """Attach a materialized view to a FastAPI route.
+
+        ### Arguments:
+        - view: The materialized view to attach to the FastAPI route.
+        """
+        self.fastapi_app.get(view.route, response_model=view.fastapi_response_model)(
+            view.get_latest_data
+        )
+
+    def _attach_view_to_fastapi(self, view: View) -> None:
+        """Attach a view to a FastAPI route.
+
+        ### Arguments:
+        - view: The view to attach to the FastAPI route.
+        """
+        self.fastapi_app.get(view.route, response_model=view.fastapi_response_model)(
+            view.function
+        )
+
+    # Schema
+
+    @property
+    def schema(self) -> Schema:
+        """The schema of the exposed view endpoints."""
+        all_views = self._views + self._materialized_views
+        exposed_views = [v for v in all_views if v.route]
+        return Schema(
+            views=[v.schema for v in exposed_views],
+        ).json_schema

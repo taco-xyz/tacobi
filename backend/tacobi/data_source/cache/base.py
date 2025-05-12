@@ -36,3 +36,8 @@ class CacheBackend(ABC):
     async def clear(self) -> None:
         """Clear the cache."""
         ...
+
+    @abstractmethod
+    async def cleanup(self) -> None:
+        """Cleanup the cache."""
+        ...

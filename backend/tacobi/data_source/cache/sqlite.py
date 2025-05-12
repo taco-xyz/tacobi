@@ -1,18 +1,23 @@
 """SQLite cache backend."""
 
 import sqlite3 as sql
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from tacobi.data_source.cache import CacheBackend
 from tacobi.data_source.encode import EncodedDataType
 
 
+def default_db_path() -> Path:
+    """Generate a default path to the SQLite database."""
+    return Path.cwd() / "cache.db"
+
+
 @dataclass
 class SQLiteCache(CacheBackend):
     """A cache backend that uses a SQLite database to store and retrieve data."""
 
-    db_path: Path
+    db_path: Path = field(default_factory=default_db_path)
     """The path to the SQLite database."""
 
     _conn: sql.Connection | None = None
@@ -38,8 +43,7 @@ class SQLiteCache(CacheBackend):
 
     def __del__(self) -> None:
         """Close the SQLite connection."""
-        if self._conn:
-            self._conn.close()
+        self.close()
 
     # Cache Operations
 
@@ -97,3 +101,7 @@ class SQLiteCache(CacheBackend):
         """Close the SQLite connection."""
         if self._conn:
             self._conn.close()
+
+    async def cleanup(self) -> None:
+        """Cleanup the cache."""
+        self.close()

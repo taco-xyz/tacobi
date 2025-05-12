@@ -130,3 +130,8 @@ class DataSourceManager:
         for data_source in self._data_sources:
             await data_source.load()
         self._scheduler.start()
+
+    async def stop(self) -> None:
+        """Stop the scheduler."""
+        self._scheduler.shutdown()
+        await self.cache_backend.cleanup()

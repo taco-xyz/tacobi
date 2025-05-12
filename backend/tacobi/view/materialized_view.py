@@ -1,11 +1,11 @@
 """Materialized views."""
 
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Generic
-from uuid import UUID, uuid4
 
 from tacobi.data_model.models import DataModelType
+from tacobi.data_model.view_data import ViewDataModel
 from tacobi.view.base import BaseView
 
 
@@ -15,15 +15,6 @@ class MaterializedView(BaseView, Generic[DataModelType]):
 
     function: Callable[[], Awaitable[DataModelType]]
     """The function to call to update the view."""
-
-    route: str | None = None
-    """The optional REST route of the view."""
-
-    name: str | None = None
-    """The optional name of the view."""
-
-    id: UUID = field(default_factory=uuid4)
-    """The unique identifier for the view."""
 
     _latest_data: DataModelType | None = None
     """The latest data from the view."""
@@ -35,6 +26,10 @@ class MaterializedView(BaseView, Generic[DataModelType]):
     def get_latest_data(self) -> DataModelType | None:
         """Get the latest data from the view."""
         return self._latest_data
+
+    def get_latest_data_as_base_model(self) -> ViewDataModel:
+        """Get the latest data from the view as a BaseModel."""
+        return self.transform_to_base_model(self._latest_data)
 
     async def recompute_latest_data(self) -> None:
         """Recompute the latest data from the view."""
