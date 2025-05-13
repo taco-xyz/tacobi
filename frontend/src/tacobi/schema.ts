@@ -1,194 +1,152 @@
 import { Resolve } from "./utils/resolve";
 
-/**
- * The type of the value in a column. These are based on the valid
- * ECharts types.
- */
-export type ColumnValue = "string" | "number";
+// --------------------------------------------------------------
+// Schema Types
+// --------------------------------------------------------------
+
+export type PropertyType = "string" | "number";
 
 /**
- * Column schema, containing a name and type of the value in each row.
- * @property name - The name of the column.
- * @property valueType - The type of the value in the column.
+ * Represents an individual property in the Pydantic data schema.
+ *
+ * @property title - The title of the property.
+ * @property type - The type of the property.
  */
-export interface ColumnSchema {
-  name: string;
-  valueType: ColumnValue;
-}
-
-export type SelectColumnValue<T extends ColumnValue> = T extends "string"
-  ? string
-  : T extends "number"
-    ? number
-    : never;
-
-/**
- * Dataset schema, containing a list of headers defining the name and type of
- * the value in each row.
- * @property columns - The columns of the dataset.
- */
-export interface DatasetSchema {
-  columns: ColumnSchema[];
+export interface PropertySchema {
+  title: string;
+  type: PropertyType;
 }
 
 /**
- * A data source, containing a name and link.
- * @property name - The name of the data source.
- * @property link - The link to the data source.
- * @example
- * const dataSource: DataSource = {
- *   name: "CoinGecko",
- *   link: "https://www.coingecko.com",
- * };
+ * Represents the type of the data schema.
  */
-export interface DataSource {
-  name: string;
-  link: string;
+export type DataType = "object" | "array";
+
+/**
+ * Represents the mapping of property names to their schemas.
+ */
+export type DataSchemaProperties = Record<string, PropertySchema>;
+
+/**
+ * Represents the data schema.
+ *
+ * @property properties - The mapping of property names to their schemas.
+ * @property required - The list of required properties.
+ * @property type - The type of the data schema.
+ */
+export interface DataSchema {
+  properties: DataSchemaProperties;
+  required: readonly string[];
+  type: DataType;
 }
 
 /**
- * Metadata about a dataset, containing an id, route, and schema.
- * @property id - The id of the dataset.
- * @property route - The route of the dataset.
- * @property dataset_schema - The schema of the dataset.
+ * Represents an individual view in the schema.
+ *
+ * @property route - The route of the view.
+ * @property data_schema - The data schema of the view.
+ * @property input_schema - The input schema of the view.
  */
-export interface DatasetMetadata {
-  id: string;
+export interface View {
   route: string;
-  dataset_schema: DatasetSchema;
-  sources: DataSource[];
+  data_schema: DataSchema;
+  input_schema: Record<string, string> | undefined;
 }
 
 /**
- * Utility type to extract the row type of a dataset.
- * @param S - The dataset schema.
- * @returns The row type of the dataset.
- */
-export type ExtractDatasetSchemaRowType<S extends DatasetSchema> = {
-  [C in S["columns"][number] as C["name"]]: SelectColumnValue<C["valueType"]>;
-};
-
-/**
- * A dataset that is pending.
- * @template M - The metadata of the dataset.
- * @property id - The id of the dataset.
- * @property state - The state of the dataset.
- */
-export interface DatasetRequestPending<M extends DatasetMetadata> {
-  id: M["id"];
-  state: "pending";
-}
-
-/**
- * A dataset that is in an error state.
- * @template M - The metadata of the dataset.
- * @property id - The id of the dataset.
- * @property state - The state of the dataset.
- * @property error - The error that occurred.
- */
-export interface DatasetRequestError<M extends DatasetMetadata> {
-  id: M["id"];
-  state: "error";
-  error: Error;
-}
-
-/**
- * A dataset that is loaded.
- * @template M - The metadata of the dataset.
- * @property id - The id of the dataset.
- * @property state - The state of the dataset.
- */
-export interface DatasetRequestLoaded<M extends DatasetMetadata> {
-  id: M["id"];
-  state: "loaded";
-  source: Resolve<ExtractDatasetSchemaRowType<M["dataset_schema"]>>[];
-}
-
-/**
- * A dataset with the source data. See {@link DatasetRequestPending},
- * {@link DatasetRequestError}, and {@link DatasetRequestLoaded} for more information.
+ * Represents the schema of the TacoBI endpoints.
  *
- * @abstract You can use tagged unions to manipulate this type.
+ * @property views - The list of exposed views in the schema.
  */
-export type DatasetRequest<M extends DatasetMetadata> =
-  | DatasetRequestPending<M>
-  | DatasetRequestError<M>
-  | DatasetRequestLoaded<M>;
+export interface Schema {
+  views: readonly View[];
+}
+
+// --------------------------------------------------------------
+// Extraction Utilities
+// --------------------------------------------------------------
 
 /**
- * Utility type to extract the row type of a dataset request.
- * @param R - The dataset request.
- * @returns The row type of the dataset request.
+ * Extracts the valid view routes from the schema.
+ *
+ * @param S - The schema to extract the valid view routes from.
+ * @returns The list of valid view routes.
  */
-export type ExtractDatasetRequestRowType<
-  R extends DatasetRequest<DatasetMetadata>,
-> =
-  R extends DatasetRequestLoaded<infer M>
-    ? Resolve<ExtractDatasetSchemaRowType<M["dataset_schema"]>>
+export type ExtractValidViewRoutes<S extends Schema> =
+  S["views"][number]["route"];
+
+/**
+ * Extracts a view from the schema based on the route.
+ *
+ * @param S - The schema to extract the view from.
+ * @param R - The route of the view to extract.
+ * @returns The view that matches the route.
+ */
+export type ExtractView<
+  S extends Schema,
+  R extends ExtractValidViewRoutes<S>,
+> = Extract<S["views"][number], { route: R }>;
+
+// --------------------------------------------------------------
+// Object Inference
+// --------------------------------------------------------------
+
+/**
+ * Infer the type of a property from the property schema.
+ *
+ * @param T - The property schema to infer the type from.
+ * @returns The type of the property.
+ */
+export type InferFromPropertySchema<T extends PropertySchema> =
+  T["type"] extends "string"
+    ? string
+    : T["type"] extends "number"
+      ? number
+      : never;
+
+/**
+ * Infer the type of an object from the data schema properties.
+ *
+ * @param T - The data schema properties to infer the type from.
+ * @returns The type of the object.
+ */
+export type InferObjectFromDataSchemaProperties<
+  T extends DataSchemaProperties,
+> = Resolve<{
+  [K in keyof T]: InferFromPropertySchema<T[K]>;
+}>;
+
+/**
+ * Infer the type of an object from the data schema.
+ *
+ * @param T - The data schema to infer the type from.
+ * @returns The type of the object.
+ */
+export type InferObjectFromDataSchema<T extends DataSchema> =
+  T["type"] extends "object"
+    ? InferObjectFromDataSchemaProperties<T["properties"]>
+    : T["type"] extends "array"
+      ? InferObjectFromDataSchemaProperties<T["properties"]>[]
+      : never;
+
+/**
+ * Infer the type of an input object from the view.
+ *
+ * @param V - The view to infer the input object from.
+ * @returns The type of the input object.
+ */
+export type InferInputObjectFromView<V extends View> =
+  V["input_schema"] extends DataSchema
+    ? InferObjectFromDataSchema<V["input_schema"]>
     : never;
 
 /**
- * The schema of the TacoBI, containing a list of datasets. It is *required*
- * to use the `as const` assertion to ensure that the types are narrowed to the
- * exact literal values, allowing us to infer proper column names and types.
- * @property datasets - The datasets emitted by TacoBI backend.
- * @example
- * const tacoBISpec = {
- *   datasets: [
- *     {
- *       id: "dataset-1",
- *       route: "/dataset-1",
- *       dataset_schema: {
- *         columns: [
- *           {
- *             name: "Beverage",
- *             valueType: "string",
- *           },
- *         ],
- *       },
- *     },
- *   ],
- * } as const satisfies TacoBISpec;
- */
-export interface TacoBISpec {
-  datasets: DatasetMetadata[];
-}
-
-/**
- * Utility type to extract the metadata of a dataset.
- * @param S - The TacoBISpec.
- * @returns The metadata of a dataset.
- */
-export type ExtractDatasetMetadata<S extends TacoBISpec> =
-  S["datasets"][number];
-
-/**
- * Utility type to extract the ids of all datasets in the TacoBISpec.
- * @param S - The TacoBISpec.
- * @returns The ids of all datasets in the TacoBISpec.
- */
-export type ExtractDatasetIds<S extends TacoBISpec> =
-  ExtractDatasetMetadata<S>["id"];
-
-/**
- * Utility type to extract the schema of a dataset.
- * @param S - The TacoBISpec.
- * @returns The schema of a dataset.
- */
-export type ExtractDatasetSchemas<S extends TacoBISpec> =
-  ExtractDatasetMetadata<S>["dataset_schema"];
-
-/**
- * Utility type to extract the column names of a dataset.
- * @param S - The TacoBISpec.
- * @param ID - The id of the dataset.
- * @returns The column name literals of the dataset.
+ * Infer the type of a data object from the view.
  *
+ * @param V - The view to infer the data object from.
+ * @returns The type of the data object.
  */
-export type ExtractDatasetColumnNames<
-  S extends TacoBISpec,
-  ID extends ExtractDatasetIds<S>,
-> = Extract<
-  S["datasets"][number],
-  { id: ID }
->["dataset_schema"]["columns"][number]["name"];
+export type InferDataObjectFromView<V extends View> =
+  V["data_schema"] extends DataSchema
+    ? InferObjectFromDataSchema<V["data_schema"]>
+    : never;

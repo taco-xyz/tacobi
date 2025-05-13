@@ -4,7 +4,7 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Literal, TypeVar
+from typing import Any, TypeVar
 
 from pandera import Column, DataFrameModel
 from pandera.dtypes import DataType, is_numeric, is_string

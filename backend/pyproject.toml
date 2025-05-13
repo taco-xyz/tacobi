@@ -51,3 +51,6 @@ ignore = ["RUF022", "COM812", "INP001", "S101", "SLF001"]
 quote-style = "double"           # Options: "single" or "double"
 indent-style = "space"           # Options: "space" or "tab"
 docstring-code-format = true     # Format code examples in docstrings
+
+[tool.uv.workspace]
+members = ["test"]

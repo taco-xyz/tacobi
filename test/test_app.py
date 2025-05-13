@@ -5,7 +5,7 @@ import asyncio
 import polars as pl
 import uvicorn
 from apscheduler.triggers.interval import IntervalTrigger
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from pandera import DataFrameModel
 from pandera.typing import DataFrame
 from pydantic import BaseModel
@@ -54,21 +54,23 @@ async def test_materialized_pydantic_view_func() -> TestBaseModel:
 # Normal View ----------------------------------------------------------------
 
 
-class ViewProps(BaseModel):
-    """View props."""
-
-    name: str
-    age: int
-
-
 @BI.view(
     name="test_normal_view",
     route="/test_normal_view",
     dependencies=[],
 )
-async def test_normal_view_func(props: ViewProps) -> TestBaseModel:
+async def test_normal_view_func(
+    name: str | None = Query(
+        default=None,
+        description="Name of the person",
+    ),
+    age: int | None = Query(
+        default=None,
+        description="Age of the person",
+    ),
+) -> TestBaseModel:
     """Test normal view function."""
-    return TestBaseModel(name=props.name, age=props.age)
+    return TestBaseModel(name=name, age=age)
 
 
 schema = BI.view_manager.schema
