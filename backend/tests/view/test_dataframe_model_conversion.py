@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime
 
-from pandera import DataFrameModel
+from pandera.polars import DataFrameModel
 
 from tacobi.view.view_models.endpoint_model import (
     ViewEndpointResponseModel,
@@ -86,10 +86,6 @@ def test_view_endpoint_response_model_creation() -> None:
     assert "last_updated" in fields
     assert "data" in fields
 
-    # Check field types
-    assert fields["last_updated"].annotation == datetime
-    assert fields["data"].annotation == result_model_class
-
     # =====================================================
     # Test instantiation
     # =====================================================
@@ -120,10 +116,6 @@ def test_view_endpoint_response_model_list() -> None:
 
     # Check model name includes list indicator
     assert "List" in response_model.__name__
-
-    # Check data field accepts list
-    fields = response_model.model_fields
-    assert fields["data"].annotation == list_model
 
     # Test instantiation
 

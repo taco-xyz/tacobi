@@ -6,8 +6,8 @@ from functools import cached_property
 from typing import Generic
 from uuid import UUID, uuid4
 
-from pandera import DataFrameModel
-from pandera.typing import DataFrame
+from pandera.polars import DataFrameModel
+from pandera.typing.polars import DataFrame
 from pydantic import BaseModel
 
 from tacobi.data_model.models import DataModelType

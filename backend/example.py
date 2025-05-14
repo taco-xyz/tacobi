@@ -4,8 +4,8 @@ import polars as pl
 import uvicorn
 from apscheduler.triggers.interval import IntervalTrigger
 from fastapi import FastAPI, Query
-from pandera import DataFrameModel
-from pandera.typing import DataFrame
+from pandera.polars import DataFrameModel
+from pandera.typing.polars import DataFrame
 from pydantic import BaseModel
 
 from tacobi import TacoBIApp
@@ -35,7 +35,7 @@ DF = pl.DataFrame({"name": ["John", "Jane"], "age": [30, 25]})
 @BI.materialized_view(name="test_data_source", route="/all_people")
 async def test_data_source() -> DataFrame[TestDataFrame]:
     """Test data source."""
-    return DF.to_pandas().pipe(TestDataFrame)
+    return DF.pipe(TestDataFrame)
 
 
 class PersonModel(BaseModel):
@@ -51,7 +51,18 @@ async def test_view(
 ) -> PersonModel:
     """Test view."""
     queried_df = DF.filter(pl.col("name") == name)
-    return PersonModel(**queried_df.to_dicts()[0])
+    return (
+        PersonModel(**queried_df.to_dicts()[0]) if not queried_df.is_empty() else None
+    )
+
+
+@BI.view(name="test_view_all_people", route="/all_people")
+async def test_view_all_people(
+    name: str = Query(default="John", description="The name of the person to query"),
+) -> DataFrame[TestDataFrame]:
+    """Test view."""
+    print(name)
+    return DF.pipe(TestDataFrame)
 
 
 async def main() -> None:

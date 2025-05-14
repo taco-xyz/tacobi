@@ -1,10 +1,10 @@
 """The main app class for TacoBI."""
 
+import inspect
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any, TypeVar
-import inspect
 
 import rustworkx as rx
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -21,7 +21,7 @@ T = TypeVar("T", bound=Callable[[DataModelType], Awaitable[DataModelType]])
 class ViewManager:
     """The main app class for TacoBI."""
 
-    recompute_trigger: BaseTrigger
+    recompute_trigger: BaseTrigger | None
     """ The trigger that will be used to recompute the materialized views. """
 
     fastapi_app: FastAPI
@@ -81,7 +81,6 @@ class ViewManager:
 
     async def _recompute_materialized_views(self) -> None:
         """Recompute all materialized views in dependency order."""
-
         print(
             f"Running recomputation of {len(self._materialized_views)} materialized views"
         )
@@ -98,8 +97,17 @@ class ViewManager:
 
     # Lifecycle
 
-    def start(self) -> None:
+    async def start(self) -> None:
         """Start the recomputation of materialized views."""
+
+        # Always recompute all materialized views on startup
+        await self._recompute_materialized_views()
+
+        if self.recompute_trigger is None:
+            msg = "No recompute trigger set. Data is already computed but won't be updated."
+            print(msg)
+            return
+
         self._recompute_scheduler.add_job(
             self._recompute_materialized_views,
             trigger=self.recompute_trigger,
