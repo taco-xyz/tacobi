@@ -189,7 +189,7 @@ async def test_start(
 ) -> None:
     """Test starting the view manager."""
     view_manager.add_materialized_view(mock_materialized_view)
-    view_manager.start()
+    await view_manager.start()
     assert view_manager._recompute_scheduler.running
 
     await asyncio.sleep(1.5)
