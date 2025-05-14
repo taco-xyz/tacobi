@@ -3,7 +3,7 @@
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import ClassVar, Generic
+from typing import Generic
 from uuid import UUID, uuid4
 
 from pandera import DataFrameModel
@@ -11,14 +11,14 @@ from pandera.typing import DataFrame
 from pydantic import BaseModel
 
 from tacobi.data_model.models import DataModelType
-from tacobi.view.dataset_schema import (
-    ViewEndpointSchema,
-    create_column_base_model_from_dataframe_model,
-)
 from tacobi.view.type_utils import (
     extract_container_type,
     extract_model_from_typehints,
     extract_return_type,
+)
+from tacobi.view.view_models.endpoint_model import (
+    ViewEndpointResponseModel,
+    create_column_base_model_from_dataframe_model,
 )
 
 
@@ -49,80 +49,67 @@ class BaseView(Generic[DataModelType]):
         """Hash the view."""
         return hash(self.id)
 
+    # =====================================================
+    # Pydantic BaseModel conversion
+    # =====================================================
+
     @cached_property
     def return_type(self) -> type[DataModelType]:
         """The return type of the view."""
         return extract_return_type(self.function)
 
     @cached_property
-    def input_type(self) -> type[BaseModel] | None:
-        """The input parameter of the view."""
-        input_params = list(self.function.__annotations__.items())[1:]
+    def base_model(self) -> tuple[type[BaseModel], bool]:
+        """The base model of the view and whether it's a list (aka a DataFrameModel).
 
-        if len(input_params) == 0:
-            return None
+        ### Returns:
+        A tuple of the base model and a boolean indicating whether it's a list.
+        """
+        # If it's already a BaseModel, we can return it directly
+        if issubclass(self.return_type, BaseModel):
+            return self.return_type, False
 
-        if len(input_params) > 1:
-            msg = f"""View must have exactly one input parameter. Input params:
-            {input_params}"""
-            raise ValueError(msg)
-
-        _, param_type = input_params[0]
-
-        if not issubclass(param_type, BaseModel):
-            msg = f"""Input parameter must be a Pydantic BaseModel. Input param:
-            {param_type}"""
-            raise TypeError(msg)
-
-        return param_type
-
-    @cached_property
-    def fastapi_response_model(self) -> type[BaseModel]:
-        """The response model for the view."""
-        return_type = self.return_type
-
-        # If the return type is a BaseModel, we just return it as is
-        if issubclass(return_type, BaseModel):
-            return return_type
-
-        # Return a FastAPI model configured for converting to a dict
-        # Read more here: https://pandera.readthedocs.io/en/latest/fastapi.html
-
-        container_type = extract_container_type(return_type, DataFrame)
+        # Otherwise, it's a DataFrameModel, so we need to wrap it in a list
+        container_type = extract_container_type(self.return_type, DataFrame)
         model = extract_model_from_typehints(
             self.function, container_type, DataFrameModel
         )
 
-        class FastAPIModel(model):
-            class Config:
-                to_format: ClassVar[str] = "dict"
-                to_format_kwargs: ClassVar[dict[str, str]] = {"orient": "records"}
-
-        return container_type[FastAPIModel]
+        return create_column_base_model_from_dataframe_model(model), True
 
     @cached_property
-    def output_schema(self) -> type[BaseModel]:
-        """The output schema of the view."""
-        return_type = self.return_type
+    def fastapi_response_model(self) -> type[ViewEndpointResponseModel]:
+        """The response model for the view.
 
-        if issubclass(return_type, BaseModel):
-            return return_type
+        ### Returns:
+        The response model for the view.
+        """
+        base_model, is_list = self.base_model
+        model = base_model if not is_list else list[base_model]
+        return ViewEndpointResponseModel.create_class_from_model(model)
 
-        container_type = extract_container_type(return_type, DataFrame)
-        model = extract_model_from_typehints(
-            self.function, container_type, DataFrameModel
-        )
+    def convert_to_base_model(self, data: DataModelType) -> BaseModel | list[BaseModel]:
+        """Convert data to BaseModel format.
 
-        return create_column_base_model_from_dataframe_model(model)
+        Called internally when generating the FastAPI response.
 
-    @cached_property
-    def schema(self) -> ViewEndpointSchema:
-        """The schema of the view."""
-        input_schema = self.input_type
-        data_schema = self.output_schema
+        ### Arguments:
+        - data: Either a BaseModel instance or DataFrame to convert
 
-        return ViewEndpointSchema(
-            route=self.route,
-            input_schema=input_schema,
-            data_schema=data_schema,
-        )
+        ### Returns:
+        BaseModel instance or list of BaseModel instances
+        """
+        # If it's already a BaseModel, return it directly
+        if isinstance(data, BaseModel):
+            return data
+
+        # Otherwise, assume it's a DataFrame and convert to list of BaseModels
+        base_model_class, _ = self.base_model
+
+        # Handle both pandas and polars DataFrames
+        if hasattr(data, "to_dicts"):  # Polars
+            records = data.to_dicts()
+        else:  # Pandas
+            records = data.to_dict("records")
+
+        return [base_model_class(**row) for row in records]

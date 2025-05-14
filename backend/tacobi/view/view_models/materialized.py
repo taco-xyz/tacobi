@@ -2,11 +2,13 @@
 
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Generic
 
+from pydantic import BaseModel
+
 from tacobi.data_model.models import DataModelType
-from tacobi.data_model.view_data import ViewDataModel
-from tacobi.view.base import BaseView
+from tacobi.view.view_models.base import BaseView
 
 
 @dataclass
@@ -16,24 +18,33 @@ class MaterializedView(BaseView, Generic[DataModelType]):
     function: Callable[[], Awaitable[DataModelType]]
     """The function to call to update the view."""
 
-    _latest_data: DataModelType | None = None
+    latest_update: datetime | None = None
+    """The latest update of the view."""
+
+    latest_data: DataModelType | None = None
     """The latest data from the view."""
 
     def __str__(self) -> str:
         """Get the string representation of the view."""
         return f"MaterializedView(name={self.name}, id={self.id})"
 
-    def get_latest_data(self) -> DataModelType | None:
-        """Get the latest data from the view."""
-        return self._latest_data
+    @property
+    def latest_data_as_base_model(self) -> BaseModel | list[BaseModel] | None:
+        """Get the latest data from the view as a BaseModel.
 
-    def get_latest_data_as_base_model(self) -> ViewDataModel:
-        """Get the latest data from the view as a BaseModel."""
-        return self.transform_to_base_model(self._latest_data)
+        ### Returns:
+        The latest data from the view as a BaseModel.
+        """
+        return (
+            self.convert_to_base_model(self.latest_data)
+            if self.latest_data is not None
+            else None
+        )
 
     async def recompute_latest_data(self) -> None:
         """Recompute the latest data from the view."""
-        self._latest_data = await self.function()
+        self.latest_data = await self.function()
+        self.latest_update = datetime.now(UTC)
 
     def __hash__(self) -> int:
         """Hash the view."""

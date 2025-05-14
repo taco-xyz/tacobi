@@ -1,10 +1,9 @@
 """Dataset schema classes."""
 
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, TypeVar
+from typing import Any, Generic, Self, TypeVar, get_args, get_origin
 
 from pandera import Column, DataFrameModel
 from pandera.dtypes import DataType, is_numeric, is_string
@@ -15,18 +14,7 @@ DataFrameBaseT = TypeVar("DataFrameBaseT", bound=DataFrameBase)
 DatasetFunctionType = Callable[[], DataFrameBaseT]
 
 
-class DatasetTypeEnum(str, Enum):
-    """The type of a dataset."""
-
-    TABULAR = "tabular"
-    OBJECT = "object"
-
-
-class ViewTypeEnum(str, Enum):
-    """The type of a view."""
-
-    MATERIALIZED = "materialized"
-    NORMAL = "normal"
+# Transforming DataFrameModel to BaseModel
 
 
 class ValueTypeEnum(str, Enum):
@@ -74,62 +62,58 @@ def create_column_base_model_from_dataframe_model(
         python_type = ValueTypeEnum.from_pandera_dtype(col.dtype).into_python_type()
         fields[col.name] = (python_type, Field(description=col.description))
 
-    return create_model(f"{dataframe_model.__name__}Response", **fields)
+    return create_model(f"{dataframe_model.__name__}Model", **fields)
 
 
-class ViewEndpointResponseModel(BaseModel):
+# Response returned by all view endpoints
+
+M = TypeVar("M", bound=BaseModel | list[BaseModel])
+
+
+class ViewEndpointResponseModel(BaseModel, Generic[M]):
     """The return object of a view endpoint."""
 
-    last_updated: datetime
+    last_updated: datetime | None
     """The last updated date of the view."""
 
-    view_type: ViewTypeEnum
-    """The type of the view. Can be either `MATERIALIZED` or `NORMAL`."""
+    data: M | None
+    """The data of the view."""
 
-    data_type: DatasetTypeEnum
-    """The type of the data. Can be either `TABULAR` or `OBJECT`."""
+    @classmethod
+    def create_class_from_model(
+        cls: type[Self], model: type[M]
+    ) -> type["ViewEndpointResponseModel[M]"]:
+        """Create a response wrapper class from a model.
 
-    data: BaseModel
-    """The data of the view. Always a Pydantic `BaseModel`."""
+        ### Arguments:
+        - model: The model to create a response wrapper class from.
 
+        ### Returns:
+        The response wrapper class.
+        """
+        # If the model is NOT a list, we can just use its properties directly
+        base_model = model
+        name = base_model.__name__
 
-@dataclass
-class ViewEndpointSchema:
-    """The schema of a view endpoint. Used for code gen on the frontend."""
+        # If it is a list, we need to extract the base model from inside the list
+        is_list = get_origin(model) is list
+        if is_list:
+            args = get_args(model)
+            if len(args) != 1:
+                msg = f"List model must have exactly one type argument, got {len(args)}"
+                raise ValueError(msg)
+            base_model = args[0]
+            name = f"{base_model.__name__}List"
 
-    route: str
-    """The route of the view endpoint."""
-
-    data_schema: type[BaseModel]
-    """The schema of the data. Always a Pydantic `BaseModel`."""
-
-    input_schema: type[BaseModel] | None = None
-    """The schema of the input parameters. Always a Pydantic `BaseModel`.
-    If the the view is materialized, this is always `None`.
-    """
-
-    @property
-    def json_schema(self) -> dict[str, Any]:
-        """The JSON schema of the data."""
-        return {
-            "route": self.route,
-            "data_schema": self.data_schema.model_json_schema(),
-            "input_schema": self.input_schema.model_json_schema()
-            if self.input_schema
-            else None,
+        fields = {
+            "last_updated": (
+                datetime | None,
+                Field(description="The time the view was last updated at."),
+            ),
+            "data": (model | None, Field(description="The data of the view.")),
         }
-
-
-@dataclass
-class Schema:
-    """The schema of a view."""
-
-    views: list[ViewEndpointSchema]
-    """The views in the schema."""
-
-    @property
-    def json_schema(self) -> dict[str, Any]:
-        """The JSON schema of the schema."""
-        return {
-            "views": [view.json_schema for view in self.views],
-        }
+        return create_model(
+            f"{name}Response",
+            **fields,
+            __doc__=f"Response container model for {name} (data).",
+        )

@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from typing import TypeVar
 from uuid import UUID
 
+import uvicorn
 from apscheduler.triggers.base import BaseTrigger
 
 from tacobi.data_model.models import DataModelType
@@ -172,4 +173,4 @@ class TacoBIApp:
     async def stop(self) -> None:
         """Stop the recomputation of datasets and materialized views."""
         await self.data_source_manager.stop()
-        self.view_manager.stop()
+        await self.view_manager.stop()

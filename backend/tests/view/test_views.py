@@ -47,14 +47,14 @@ async def test_get_latest_data_initial(
     mock_materialized_view: MaterializedView,
 ) -> None:
     """Test getting latest data before recomputation."""
-    assert mock_materialized_view.get_latest_data() is None
+    assert mock_materialized_view.latest_data is None
 
 
 @pytest.mark.asyncio
 async def test_recompute_latest_data(mock_materialized_view: MaterializedView) -> None:
     """Test recomputing latest data."""
     await mock_materialized_view.recompute_latest_data()
-    data: MockDataModel = mock_materialized_view.get_latest_data()
+    data: MockDataModel = mock_materialized_view.latest_data
     assert isinstance(data, MockDataModel)
     assert data.value == 42  # noqa: PLR2004
 
@@ -65,8 +65,8 @@ async def test_recompute_updates_data(
 ) -> None:
     """Test that recompute updates the latest data."""
     await mock_materialized_view.recompute_latest_data()
-    initial_data: MockDataModel = mock_materialized_view.get_latest_data()
+    initial_data: MockDataModel = mock_materialized_view.latest_data
     await mock_materialized_view.recompute_latest_data()
-    new_data: MockDataModel = mock_materialized_view.get_latest_data()
+    new_data: MockDataModel = mock_materialized_view.latest_data
     assert initial_data is not new_data  # Should be new instance
     assert initial_data.value == new_data.value  # But same value
