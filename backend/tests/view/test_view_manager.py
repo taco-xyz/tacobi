@@ -142,13 +142,13 @@ async def test_recompute_materialized_views_chain(
     mv1 = MaterializedView(name="view1", function=mock_view1, dependencies=[])
 
     async def mock_view2() -> MockDataModel2:
-        mv1_data = mv1.get_latest_data()
+        mv1_data = mv1.latest_data
         return MockDataModel2(value=mv1_data.value, derived_value=mv1_data.value * 2)
 
     mv2 = MaterializedView(name="view2", function=mock_view2, dependencies=[mv1.id])
 
     async def mock_view3() -> MockDataModel3:
-        mv2_data = mv2.get_latest_data()
+        mv2_data = mv2.latest_data
         return MockDataModel3(final_value=mv2_data.derived_value + 10)
 
     # Create the views
@@ -163,9 +163,9 @@ async def test_recompute_materialized_views_chain(
     await view_manager._recompute_materialized_views()
 
     # Check initial values
-    assert mv1.get_latest_data().value == 42  # noqa: PLR2004
-    assert mv2.get_latest_data().value == 42  # noqa: PLR2004
-    assert mv2.get_latest_data().derived_value == 84  # noqa: PLR2004
+    assert mv1.latest_data.value == 42  # noqa: PLR2004
+    assert mv2.latest_data.value == 42  # noqa: PLR2004
+    assert mv2.latest_data.derived_value == 84  # noqa: PLR2004
     result = await v3.function()
     assert result.final_value == 94  # noqa: PLR2004
 
@@ -176,9 +176,9 @@ async def test_recompute_materialized_views_chain(
     await view_manager._recompute_materialized_views()
 
     # Check updated values
-    assert mv1.get_latest_data().value == 100  # noqa: PLR2004
-    assert mv2.get_latest_data().value == 100  # noqa: PLR2004
-    assert mv2.get_latest_data().derived_value == 200  # noqa: PLR2004
+    assert mv1.latest_data.value == 100  # noqa: PLR2004
+    assert mv2.latest_data.value == 100  # noqa: PLR2004
+    assert mv2.latest_data.derived_value == 200  # noqa: PLR2004
     result = await v3.function()
     assert result.final_value == 210  # noqa: PLR2004
 
@@ -189,9 +189,9 @@ async def test_start(
 ) -> None:
     """Test starting the view manager."""
     view_manager.add_materialized_view(mock_materialized_view)
-    view_manager.start()
+    await view_manager.start()
     assert view_manager._recompute_scheduler.running
 
     await asyncio.sleep(1.5)
 
-    assert mock_materialized_view.get_latest_data().value == 42  # noqa: PLR2004
+    assert mock_materialized_view.latest_data.value == 42  # noqa: PLR2004

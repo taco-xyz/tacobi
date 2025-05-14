@@ -1,6 +1,6 @@
 [project]
 name = "tacobi"
-version = "0.2.0"
+version = "0.2.1"
 description = "A framework for building and running BI applications."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -51,3 +51,6 @@ ignore = ["RUF022", "COM812", "INP001", "S101", "SLF001"]
 quote-style = "double"           # Options: "single" or "double"
 indent-style = "space"           # Options: "space" or "tab"
 docstring-code-format = true     # Format code examples in docstrings
+
+[tool.uv.workspace]
+members = ["test"]

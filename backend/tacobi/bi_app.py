@@ -167,9 +167,9 @@ class TacoBIApp:
     async def start(self) -> None:
         """Start the recomputation of datasets and materialized views."""
         await self.data_source_manager.start()
-        self.view_manager.start()
+        await self.view_manager.start()
 
     async def stop(self) -> None:
         """Stop the recomputation of datasets and materialized views."""
         await self.data_source_manager.stop()
-        self.view_manager.stop()
+        await self.view_manager.stop()

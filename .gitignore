@@ -6,3 +6,5 @@ venv/
 .pytest_cache/
 .cache/
 node_modules/
+*.pyc
+*.db

@@ -69,7 +69,7 @@ def extract_container_content(
     # Extract the model from Container[Model]
     type_args = get_args(container_type)
     if not type_args or len(type_args) != 1:
-        msg = f"{expected_container_type.__name__} must have exactly one type argument"
+        msg = f"{expected_container_type.__name__} must have exactly one type argument. Actual: {type_args}"
         raise TypeError(msg)
 
     content_class = type_args[0]

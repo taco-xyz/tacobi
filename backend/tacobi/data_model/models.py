@@ -1,11 +1,9 @@
 """Models for data models."""
 
-from datetime import datetime
 from typing import TypeVar
 
 from pandera.typing.common import DataFrameBase
 from pydantic import BaseModel
-
 
 DataModel = DataFrameBase | BaseModel
 """A valid data model can either be a Pandera Polars `DataFrameModel` or a
