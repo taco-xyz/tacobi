@@ -99,7 +99,6 @@ class ViewManager:
 
     async def start(self) -> None:
         """Start the recomputation of materialized views."""
-
         # Always recompute all materialized views on startup
         await self._recompute_materialized_views()
 

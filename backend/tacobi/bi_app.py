@@ -24,8 +24,8 @@ class TacoBIApp:
     data_source_manager: DataSourceManager = field(default_factory=DataSourceManager)
     """ Manager used for scheduling data sources."""
 
-    _view_function_ids: dict[Callable, UUID] = field(default_factory=dict)
-    """ A dictionary of view functions. """
+    _view_name_ids: dict[str, UUID] = field(default_factory=dict)
+    """ A dictionary of view names. """
 
     # Data Source Management
 
@@ -63,9 +63,9 @@ class TacoBIApp:
 
     def view(
         self,
-        name: str,
+        name: str | None = None,
         route: str | None = None,
-        dependencies: list[Callable] | None = None,
+        dependencies: list[Callable | str] | None = None,
     ) -> Callable[[T], T]:
         """Register a view.
 
@@ -81,20 +81,36 @@ class TacoBIApp:
         def wrapper(
             func: Callable[[T], Awaitable[DataModelType]],
         ) -> Callable[[T], Awaitable[DataModelType]]:
+            # Get the name
+            view_name = name or func.__name__
+
+            # Check that the name is unique:
+            if view_name in self._view_name_ids:
+                msg = f"View {view_name} already exists"
+                raise ValueError(msg)
+
+            # Convert the dependencies to names (as they could be strings or functions)
+            dependency_names = (
+                [dep if isinstance(dep, str) else dep.__name__ for dep in dependencies]
+                if dependencies
+                else []
+            )
+
             # Get the dependencies
             try:
                 dep_ids = (
-                    [self._view_function_ids[dep] for dep in dependencies]
-                    if dependencies
+                    [self._view_name_ids[dep] for dep in dependency_names]
+                    if dependency_names
                     else []
                 )
             except KeyError as e:
-                msg = f"Dependency {e} not found"
+                msg = f"""Dependency {e} not found. Available dependencies:
+                {self._view_name_ids.keys()}"""
                 raise ValueError(msg) from e
 
             # Add the view to the view manager
             view = View(
-                name=name,
+                name=view_name,
                 function=func,
                 route=route,
                 dependencies=dep_ids,
@@ -102,16 +118,18 @@ class TacoBIApp:
             self.view_manager.add_view(view)
 
             # Register the view function in the view manager
-            self._view_function_ids[func] = view.id
+            self._view_name_ids[view_name] = view.id
+
+            # Return the view function
             return func
 
         return wrapper
 
     def materialized_view(
         self,
-        name: str,
+        name: str | None = None,
         route: str | None = None,
-        dependencies: list[Callable] | None = None,
+        dependencies: list[Callable | str] | None = None,
     ) -> Callable[
         [Callable[[DataModelType | None], Awaitable[DataModelType]]],
         Callable[[], DataModelType | None],
@@ -121,30 +139,48 @@ class TacoBIApp:
         Also transforms the function into a synchronous getter of the latest data.
 
         ### Arguments:
-        - route: The route of the view.
-        - dependencies: The dependencies of the view.
+        - name: The name of the materialized view. If not provided, the name of the
+          function will be used.
+        - route: The route of the materialized view.
+        - dependencies: The dependencies of the materialized view.
 
         ### Returns:
-        The view function itself.
+        A non-async function that returns the latest data from the materialized view.
         """
 
         def wrapper(
             func: Callable[[DataModelType | None], Awaitable[DataModelType]],
         ) -> Callable[[], DataModelType | None]:
-            # Get the dependencies
+            # Get the name
+            view_name = name or func.__name__
+
+            # Check that the name is unique:
+            if view_name in self._view_name_ids:
+                msg = f"Materialized view {view_name} already exists"
+                raise ValueError(msg)
+
+            # Convert the dependencies to names (as they could be strings or functions)
+            dependency_names = (
+                [dep if isinstance(dep, str) else dep.__name__ for dep in dependencies]
+                if dependencies
+                else []
+            )
+
+            # Get the dependency IDs
             try:
                 dep_ids = (
-                    [self._view_function_ids[dep] for dep in dependencies]
-                    if dependencies
+                    [self._view_name_ids[dep] for dep in dependency_names]
+                    if dependency_names
                     else []
                 )
             except KeyError as e:
-                msg = f"Dependency {e} not found"
+                msg = f"""Dependency {e} not found. Available dependencies:
+                {self._view_name_ids.keys()}"""
                 raise ValueError(msg) from e
 
             # Add the view to the view manager
             view = MaterializedView(
-                name=name,
+                name=view_name,
                 function=func,
                 route=route,
                 dependencies=dep_ids,
@@ -152,13 +188,14 @@ class TacoBIApp:
             self.view_manager.add_materialized_view(view)
 
             # Register the view function in the view manager
-            self._view_function_ids[func] = view.id
+            self._view_name_ids[view_name] = view.id
 
             # Return the latest data from the view
-            def get_latest_view_data() -> DataModelType | None:
-                return view.get_latest_data()
+            def _inner_func() -> DataModelType | None:
+                return view.latest_data
 
-            return get_latest_view_data
+            _inner_func.__name__ = view_name
+            return _inner_func
 
         return wrapper
 
@@ -172,4 +209,4 @@ class TacoBIApp:
     async def stop(self) -> None:
         """Stop the recomputation of datasets and materialized views."""
         await self.data_source_manager.stop()
-        await self.view_manager.stop()
+        self.view_manager.stop()
