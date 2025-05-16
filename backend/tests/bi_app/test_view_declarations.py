@@ -42,12 +42,12 @@ async def test_materialized_view_declarations(view_manager: ViewManager) -> None
     value = 42
 
     # First materialized view
-    @app.materialized_view(name="base_view")
+    @app.materialized_view()
     async def base_view() -> MockDataModel:
         return MockDataModel(value=value)
 
     # Second materialized view depending on the first
-    @app.materialized_view(name="derived_view", dependencies=[base_view])
+    @app.materialized_view(dependencies=[base_view])
     async def derived_view() -> DerivedDataModel:
         base_data = base_view()
         assert base_data is not None
