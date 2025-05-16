@@ -1,6 +1,6 @@
 [project]
 name = "tacobi"
-version = "0.2.1"
+version = "0.2.2"
 description = "A framework for building and running BI applications."
 readme = "README.md"
 requires-python = ">=3.11"
